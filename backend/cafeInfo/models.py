@@ -21,8 +21,8 @@ class Cafe(models.Model):
     distance = models.FloatField()
     info = models.TextField()
     comment = models.TextField()
-    ig_link = models.CharField(max_length=500, blank = True, null = True)
-    fb_link = models.CharField(max_length=500, blank = True, null = True)
+    ig_link = models.CharField(max_length=400, blank = True, null = True)
+    fb_link = models.CharField(max_length=400, blank = True, null = True)
     post_date = models.DateTimeField(default=timezone.now)
     ig_post_cnt = models.IntegerField()
 
