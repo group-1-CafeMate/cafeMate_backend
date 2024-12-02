@@ -22,34 +22,18 @@ def addNewCafe(request):
             "FBLink", "googleReviewLink"
         ]
         missing_fields = [field for field in required_fields if field not in data]
+
         if missing_fields:
-            return JsonResponse({
-                'status': 400,
-                'success': False,
-                'err': f'缺少必要的參數: {", ".join(missing_fields)}'
-            }, status=400)
+            return JsonResponse({'success': False, 'err': f'缺少必要的參數: {", ".join(missing_fields)}'}, status=400)
 
         cafe = Cafe.objects.create(**{field: data[field] for field in required_fields})
-        return JsonResponse({
-            'status': 200,
-            'success': True,
-            'message': 'Cafe added successfully',
-            'CafeId': cafe.cafe_id,
-            'err': None
-        }, status=200)
+        return JsonResponse({'success': True, 'message': 'Cafe added successfully', 'cafe_id': cafe.cafe_id}, status=200)
 
     except json.JSONDecodeError:
-        return JsonResponse({
-            'status': 400,
-            'success': False,
-            'err': 'Invalid JSON format'
-        }, status=400)
+        return JsonResponse({'success': False, 'err': 'Invalid JSON format'}, status=400)
     except Exception as e:
-        return JsonResponse({
-            'status': 500,
-            'success': False,
-            'err': 'Internal server error'
-        }, status=500)
+        return JsonResponse({'success': False, 'err': 'Internal server error'}, status=500)
+
 
 # 管理員更新咖啡廳
 @admin_required()
@@ -58,46 +42,25 @@ def addNewCafe(request):
 def updateCafe(request):
     try:
         data = json.loads(request.body)
-        cafe_id = data.get("cafeId")
+        cafe_id = data.get("cafe_id")
         if not cafe_id:
-            return JsonResponse({
-                'status': 400,
-                'success': False,
-                'err': '缺少必要的參數: cafeId'
-            }, status=400)
+            return JsonResponse({'success': False, 'err': '缺少必要的參數: cafe_id'}, status=400)
 
-        try:
-            cafe = Cafe.objects.get(cafe_id=cafe_id)
-            for key, value in data.items():
-                if hasattr(cafe, key):
-                    setattr(cafe, key, value)
-            cafe.save()
+        cafe = Cafe.objects.get(cafe_id=cafe_id)
+        for key, value in data.items():
+            if hasattr(cafe, key):
+                setattr(cafe, key, value)
+        cafe.save()
 
-            return JsonResponse({
-                'status': 200,
-                'success': True,
-                'message': 'Cafe updated successfully',
-                'err': None
-            }, status=200)
-        except Cafe.DoesNotExist:
-            return JsonResponse({
-                'status': 404,
-                'success': False,
-                'err': '找不到指定的咖啡廳'
-            }, status=404)
+        return JsonResponse({'success': True, 'message': 'Cafe updated successfully'}, status=200)
 
+    except Cafe.DoesNotExist:
+        return JsonResponse({'success': False, 'err': '找不到指定的咖啡廳'}, status=404)
     except json.JSONDecodeError:
-        return JsonResponse({
-            'status': 400,
-            'success': False,
-            'err': 'Invalid JSON format'
-        }, status=400)
+        return JsonResponse({'success': False, 'err': 'Invalid JSON format'}, status=400)
     except Exception as e:
-        return JsonResponse({
-            'status': 500,
-            'success': False,
-            'err': 'Internal server error'
-        }, status=500)
+        return JsonResponse({'success': False, 'err': 'Internal server error'}, status=500)
+
 
 # 管理員刪除咖啡廳
 @admin_required()
@@ -107,43 +70,23 @@ def deleteCafe(request):
     try:
         data = json.loads(request.body)
         admin_id = data.get("adminId")
-        cafe_id = data.get("cafeId")
-        
+        cafe_id = data.get("cafe_id")
+
         if not admin_id or not cafe_id:
-            return JsonResponse({
-                'status': 400,
-                'success': False,
-                'err': '缺少必要的參數: adminId 或 cafeId'
-            }, status=400)
+            return JsonResponse({'success': False, 'err': '缺少必要的參數: adminId 或 cafe_id'}, status=400)
 
-        try:
-            cafe = Cafe.objects.get(cafe_id=cafe_id)
-            cafe.delete()
-            return JsonResponse({
-                'status': 200,
-                'success': True,
-                'message': 'Cafe deleted successfully',
-                'err': None
-            }, status=200)
-        except Cafe.DoesNotExist:
-            return JsonResponse({
-                'status': 404,
-                'success': False,
-                'err': '指定的咖啡廳不存在'
-            }, status=404)
+        cafe = Cafe.objects.get(cafe_id=cafe_id)
+        cafe.delete()
 
+        return JsonResponse({'success': True, 'message': 'Cafe deleted successfully'}, status=200)
+
+    except Cafe.DoesNotExist:
+        return JsonResponse({'success': False, 'err': '指定的咖啡廳不存在'}, status=404)
     except json.JSONDecodeError:
-        return JsonResponse({
-            'status': 400,
-            'success': False,
-            'err': 'Invalid JSON format'
-        }, status=400)
+        return JsonResponse({'success': False, 'err': 'Invalid JSON format'}, status=400)
     except Exception as e:
-        return JsonResponse({
-            'status': 500,
-            'success': False,
-            'err': 'Internal server error'
-        }, status=500)
+        return JsonResponse({'success': False, 'err': 'Internal server error'}, status=500)
+
 
 # 管理員審核咖啡廳
 @admin_required()
@@ -153,45 +96,25 @@ def judgeCafe(request):
     try:
         data = json.loads(request.body)
         admin_id = data.get("adminId")
-        cafe_id = data.get("cafeId")
+        cafe_id = data.get("cafe_id")
         is_legal = data.get("isLegal", None)
 
         if not all([admin_id, cafe_id, is_legal is not None]):
-            return JsonResponse({
-                'status': 400,
-                'success': False,
-                'err': '缺少必要的參數: adminId, cafeId 或 isLegal'
-            }, status=400)
+            return JsonResponse({'success': False, 'err': '缺少必要的參數: adminId, cafe_id 或 isLegal'}, status=400)
 
-        try:
-            cafe = Cafe.objects.get(cafe_id=cafe_id)
-            cafe.legal = is_legal
-            cafe.save()
-            return JsonResponse({
-                'status': 200,
-                'success': True,
-                'message': 'Cafe updated successfully',
-                'err': None
-            }, status=200)
-        except Cafe.DoesNotExist:
-            return JsonResponse({
-                'status': 404,
-                'success': False,
-                'err': '指定的咖啡廳不存在'
-            }, status=404)
+        cafe = Cafe.objects.get(cafe_id=cafe_id)
+        cafe.legal = is_legal
+        cafe.save()
 
+        return JsonResponse({'success': True, 'message': 'Cafe updated successfully'}, status=200)
+
+    except Cafe.DoesNotExist:
+        return JsonResponse({'success': False, 'err': '指定的咖啡廳不存在'}, status=404)
     except json.JSONDecodeError:
-        return JsonResponse({
-            'status': 400,
-            'success': False,
-            'err': 'Invalid JSON format'
-        }, status=400)
+        return JsonResponse({'success': False, 'err': 'Invalid JSON format'}, status=400)
     except Exception as e:
-        return JsonResponse({
-            'status': 500,
-            'success': False,
-            'err': 'Internal server error'
-        }, status=500)
+        return JsonResponse({'success': False, 'err': 'Internal server error'}, status=500)
+
 
 
 
