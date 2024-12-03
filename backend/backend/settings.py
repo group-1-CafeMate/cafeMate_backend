@@ -42,13 +42,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     # our apps
     "cafeInfo",
     "crawler",
     "filter",
     "recommendSystem",
-    "users",
+    "user",
 ]
 
 MIDDLEWARE = [
@@ -88,11 +87,11 @@ WSGI_APPLICATION = "backend.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        'NAME': os.getenv('MYSQL_NAME'),
-        'USER': os.getenv('MYSQL_USER'),
-        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        'HOST': os.getenv('MYSQL_HOST'),
-        'PORT': '3306',
+        "NAME": os.getenv("MYSQL_NAME"),
+        "USER": os.getenv("MYSQL_USER"),
+        "PASSWORD": os.getenv("MYSQL_PASSWORD"),
+        "HOST": os.getenv("MYSQL_HOST"),
+        "PORT": "3306",
     }
 }
 
@@ -139,9 +138,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = "zh-hant" # 繁體中文
+LANGUAGE_CODE = "zh-hant"  # 繁體中文
 
-TIME_ZONE = "Asia/Taipei" 
+TIME_ZONE = "Asia/Taipei"
 
 USE_I18N = True
 
