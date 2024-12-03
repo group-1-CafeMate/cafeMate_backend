@@ -91,7 +91,11 @@ def filter_cafes_by_labels(request):
 
     try:
         cafes = Cafe.objects.filter(legal=True)
-        filtered_cafes = [cafe for cafe in cafes if cafe.matches_labels(labels)]
+        filtered_cafes = [
+            cafe
+            for cafe in cafes
+            if any(label in cafe.get_labels() for label in labels)
+        ]
 
         if not filtered_cafes:
             return JsonResponse(
