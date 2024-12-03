@@ -1,0 +1,33 @@
+name: cloud_class
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - asgiref=3.8.1
+  - bzip2=1.0.8
+  - ca-certificates=2024.8.30
+  - django=5.0.4
+  - djangorestframework=3.15.1
+  - libcxx=19.1.4
+  - libffi=3.4.2
+  - libsqlite=3.47.0
+  - libzlib=1.3.1
+  - mysql-common=9.0.1
+  - mysql-libs=9.0.1
+  - mysqlclient=2.2.6
+  - ncurses=6.5
+  - openssl=3.4.0
+  - pip=24.3.1
+  - python=3.10.15
+  - python-dotenv=1.0.1
+  - python_abi=3.10
+  - readline=8.2
+  - setuptools=75.6.0
+  - sqlparse=0.5.2
+  - tk=8.6.13
+  - typing_extensions=4.12.2
+  - tzdata=2024b
+  - wheel=0.45.1
+  - xz=5.2.6
+  - zstd=1.5.6
+prefix: /opt/anaconda3/envs/cloud_class
