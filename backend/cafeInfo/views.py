@@ -2,6 +2,7 @@ from django.shortcuts import render
 from .models import Cafe, CafeImage
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from .utils import calculate_and_sort_cafes, LatitudeLongitude
 
 
 @require_http_methods(["GET"])
@@ -9,15 +10,19 @@ def get_all_cafes(request):
     try:
         user_lat = request.GET.get("latitude")
         user_lon = request.GET.get("longitude")
+
         # 如果沒有傳進經度、緯度
         if not user_lat or not user_lon:
             return JsonResponse(
                 {"message": "latitude and longitude are required", "success": False},
                 status=400,
             )
+
         # 如果經度、緯度不合理
         try:
-            user_location = LatitudeLongitude(float(user_lat), float(user_lon))
+            user_lat = float(user_lat)
+            user_lon = float(user_lon)
+            user_location = LatitudeLongitude(user_lat, user_lon)
         except ValueError as e:
             return JsonResponse(
                 {
@@ -34,35 +39,43 @@ def get_all_cafes(request):
                 {"message": "No cafes found", "success": False}, status=404
             )
 
-        cafe_info_with_distance = []
-        for cafe in cafes:
-            try:
-                cafe_location = LatitudeLongitude(cafe.latitude, cafe.longitude)
-                distance = user_location.distance_to(cafe_location)
-            except ValueError:
-                continue  # 如果經緯度有問題，跳過該咖啡廳
+        # 計算並排序咖啡廳
+        cafes_with_distance = calculate_and_sort_cafes(cafes, user_lat, user_lon)
 
-            cafe_info_with_distance.append(
+        # 格式化為包含所需資訊的列表
+        cafe_info = []
+        for distance, cafe in cafes_with_distance:
+            images_urls = [
+                img.image.url for img in cafe.images.all()
+            ]  # 提取所有圖片 URL
+            cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
                     "name": cafe.name,
+                    "phone": cafe.phone,
+                    "addr": cafe.addr,
+                    "quiet": cafe.quiet,
                     "grade": cafe.grade,
+                    "time_unlimit": cafe.time_unlimit,
+                    "time_limit": cafe.time_limit,
+                    "socket": cafe.socket,
+                    "pets_allowed": cafe.pets_allowed,
+                    "wiFi": cafe.wiFi,
                     "open_hour": cafe.open_hour,
                     "open_now": cafe.open_now,
-                    "distance": round(distance, 4),
-                    "labels": cafe.get_labels(),
-                    "image_url": (
-                        cafe.images.all()[0].image.url if cafe.images.exists() else None
-                    ),
+                    "distance": distance,
+                    "info": cafe.info,
+                    "comment": cafe.comment,
+                    "ig_link": cafe.ig_link,
+                    "fb_link": getattr(cafe, "fb_link", None),  # 如果 Cafe 有此欄位
+                    "images_urls": images_urls,  # 包含所有圖片 URL
                 }
             )
 
-        # 根據距離排序
-        cafe_info_with_distance.sort(key=lambda x: x["distance"])
-
         return JsonResponse(
-            {"cafes": cafe_info_with_distance, "success": True}, safe=False, status=200
+            {"cafes": cafe_info, "success": True}, safe=False, status=200
         )
+
     except Exception as e:
         return JsonResponse({"message": str(e), "success": False}, status=500)
 

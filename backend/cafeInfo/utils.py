@@ -1,4 +1,7 @@
 import math
+from typing import List, Tuple
+from .models import Cafe
+from .utils import LatitudeLongitude
 
 
 class LatitudeLongitude:
@@ -39,3 +42,36 @@ class LatitudeLongitude:
         distance = R * c
 
         return distance
+
+
+def calculate_and_sort_cafes(
+    cafes: List[Cafe], user_location: LatitudeLongitude
+) -> List[Tuple[float, Cafe]]:
+    """
+    計算每個 Cafe 與用戶的距離並依距離排序。
+
+    :param cafes: Cafe 的列表。
+    :param user_lat: 用戶當前的緯度。
+    :param user_lon: 用戶當前的經度。
+    :return: 包含距離和 Cafe 的列表，依距離排序。
+    """
+    try:
+        # 計算每個 Cafe 的距離
+        cafes_with_distances = []
+        for cafe in cafes:
+            if cafe.latitude is None or cafe.longitude is None:
+                continue  # 跳過沒有經緯度的 Cafe
+
+            try:
+                cafe_location = LatitudeLongitude(cafe.latitude, cafe.longitude)
+                distance = user_location.distance_to(cafe_location)
+                cafes_with_distances.append((distance, cafe))
+            except ValueError:
+                continue  # 若經緯度格式有誤，跳過
+
+        # 根據距離進行排序
+        cafes_with_distances.sort(key=lambda x: x[0])
+
+        return cafes_with_distances
+    except Exception as e:
+        raise ValueError(f"Error in calculating and sorting cafes: {str(e)}")
