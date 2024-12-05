@@ -1,4 +1,7 @@
 import math
+from typing import List, Tuple
+from .models import Cafe
+from .utils import LatitudeLongitude
 
 
 class LatitudeLongitude:
@@ -41,30 +44,34 @@ class LatitudeLongitude:
         return distance
 
 
-def sort_cafes_by_distance(cafes):
-    cafe_info_with_distance = []
-    for cafe in cafes:
-        try:
-            cafe_location = LatitudeLongitude(cafe.latitude, cafe.longitude)
-            distance = user_location.distance_to(cafe_location)
-        except ValueError:
-            continue  # 如果經緯度有問題，跳過該咖啡廳
+def calculate_and_sort_cafes(
+    cafes: List[Cafe], user_location: LatitudeLongitude
+) -> List[Tuple[float, Cafe]]:
+    """
+    計算每個 Cafe 與用戶的距離並依距離排序。
 
-        cafe_info_with_distance.append(
-            {
-                "cafe_id": str(cafe.cafe_id),
-                "name": cafe.name,
-                "grade": cafe.grade,
-                "open_hour": cafe.open_hour,
-                "open_now": cafe.open_now,
-                "distance": round(distance, 4),
-                "labels": cafe.get_labels(),
-                "image_url": (
-                    cafe.images.all()[0].image.url if cafe.images.exists() else None
-                ),
-            }
-        )
+    :param cafes: Cafe 的列表。
+    :param user_lat: 用戶當前的緯度。
+    :param user_lon: 用戶當前的經度。
+    :return: 包含距離和 Cafe 的列表，依距離排序。
+    """
+    try:
+        # 計算每個 Cafe 的距離
+        cafes_with_distances = []
+        for cafe in cafes:
+            if cafe.latitude is None or cafe.longitude is None:
+                continue  # 跳過沒有經緯度的 Cafe
 
-    # 根據距離排序
-    cafe_info_with_distance.sort(key=lambda x: x["distance"])
-    return cafe_info_with_distance
+            try:
+                cafe_location = LatitudeLongitude(cafe.latitude, cafe.longitude)
+                distance = user_location.distance_to(cafe_location)
+                cafes_with_distances.append((distance, cafe))
+            except ValueError:
+                continue  # 若經緯度格式有誤，跳過
+
+        # 根據距離進行排序
+        cafes_with_distances.sort(key=lambda x: x[0])
+
+        return cafes_with_distances
+    except Exception as e:
+        raise ValueError(f"Error in calculating and sorting cafes: {str(e)}")
