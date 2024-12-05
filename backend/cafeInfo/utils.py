@@ -1,7 +1,6 @@
 import math
 from typing import List, Tuple
 from .models import Cafe
-from .utils import LatitudeLongitude
 
 
 class LatitudeLongitude:
