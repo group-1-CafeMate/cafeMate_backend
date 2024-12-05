@@ -7,6 +7,26 @@ from django.views.decorators.http import require_http_methods
 @require_http_methods(["GET"])
 def get_all_cafes(request):
     try:
+        user_lat = request.GET.get("latitude")
+        user_lon = request.GET.get("longitude")
+        # 如果沒有傳進經度、緯度
+        if not user_lat or not user_lon:
+            return JsonResponse(
+                {"message": "latitude and longitude are required", "success": False},
+                status=400,
+            )
+        # 如果經度、緯度不合理
+        try:
+            user_location = LatitudeLongitude(float(user_lat), float(user_lon))
+        except ValueError as e:
+            return JsonResponse(
+                {
+                    "message": f"Invalid latitude or longitude: {str(e)}",
+                    "success": False,
+                },
+                status=400,
+            )
+
         cafes = Cafe.objects.filter(legal=True)
 
         if not cafes.exists():
@@ -14,26 +34,35 @@ def get_all_cafes(request):
                 {"message": "No cafes found", "success": False}, status=404
             )
 
-        partial_cafe_info = [
-            {
-                "cafe_id": str(cafe.cafe_id),
-                "name": cafe.name,
-                "grade": cafe.grade,
-                "open_hour": cafe.open_hour,
-                "open_now": cafe.open_now,
-                "distance": cafe.distance,
-                "labels": cafe.get_labels(),
-                "image_url": (
-                    cafe.images.all()[0].image.url if cafe.images.exists() else None
-                ),
-            }
-            for cafe in cafes
-        ]
+        cafe_info_with_distance = []
+        for cafe in cafes:
+            try:
+                cafe_location = LatitudeLongitude(cafe.latitude, cafe.longitude)
+                distance = user_location.distance_to(cafe_location)
+            except ValueError:
+                continue  # 如果經緯度有問題，跳過該咖啡廳
+
+            cafe_info_with_distance.append(
+                {
+                    "cafe_id": str(cafe.cafe_id),
+                    "name": cafe.name,
+                    "grade": cafe.grade,
+                    "open_hour": cafe.open_hour,
+                    "open_now": cafe.open_now,
+                    "distance": round(distance, 4),
+                    "labels": cafe.get_labels(),
+                    "image_url": (
+                        cafe.images.all()[0].image.url if cafe.images.exists() else None
+                    ),
+                }
+            )
+
+        # 根據距離排序
+        cafe_info_with_distance.sort(key=lambda x: x["distance"])
 
         return JsonResponse(
-            {"cafes": partial_cafe_info, "success": True}, safe=False, status=200
+            {"cafes": cafe_info_with_distance, "success": True}, safe=False, status=200
         )
-
     except Exception as e:
         return JsonResponse({"message": str(e), "success": False}, status=500)
 
