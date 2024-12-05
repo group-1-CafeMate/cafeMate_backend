@@ -20,9 +20,10 @@ class Cafe(models.Model):
     socket = models.BooleanField(blank=True, null=True)
     pets_allowed = models.BooleanField()  # True: 寵物咖啡廳
     wiFi = models.BooleanField()
-    open_hour = models.CharField(max_length=50)  # ex. 8:00-16:00
+    open_hour = models.CharField(max_length=10)
     open_now = models.BooleanField()
-    distance = models.FloatField()
+    latitude = models.FloatField()
+    longitude = models.FloatField()
     info = models.TextField()
     comment = models.TextField()
     ig_link = models.CharField(max_length=400, blank=True, null=True)
@@ -46,15 +47,6 @@ class Cafe(models.Model):
             label_list.append("WiFi")
 
         return label_list
-
-    def matches_labels(self, labels):
-        """
-        Check if the cafe matches all the given labels.
-        :param labels: List of labels to filter by.
-        :return: True if the cafe matches all labels, False otherwise.
-        """
-        cafe_labels = set(self.get_labels())
-        return all(label in cafe_labels for label in labels)
 
 
 class CafeImage(models.Model):
