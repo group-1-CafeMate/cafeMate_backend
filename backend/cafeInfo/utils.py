@@ -39,3 +39,32 @@ class LatitudeLongitude:
         distance = R * c
 
         return distance
+
+
+def sort_cafes_by_distance(cafes):
+    cafe_info_with_distance = []
+    for cafe in cafes:
+        try:
+            cafe_location = LatitudeLongitude(cafe.latitude, cafe.longitude)
+            distance = user_location.distance_to(cafe_location)
+        except ValueError:
+            continue  # 如果經緯度有問題，跳過該咖啡廳
+
+        cafe_info_with_distance.append(
+            {
+                "cafe_id": str(cafe.cafe_id),
+                "name": cafe.name,
+                "grade": cafe.grade,
+                "open_hour": cafe.open_hour,
+                "open_now": cafe.open_now,
+                "distance": round(distance, 4),
+                "labels": cafe.get_labels(),
+                "image_url": (
+                    cafe.images.all()[0].image.url if cafe.images.exists() else None
+                ),
+            }
+        )
+
+    # 根據距離排序
+    cafe_info_with_distance.sort(key=lambda x: x["distance"])
+    return cafe_info_with_distance

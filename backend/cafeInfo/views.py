@@ -2,6 +2,7 @@ from django.shortcuts import render
 from .models import Cafe, CafeImage
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from .utils import sort_cafes_by_distance
 
 
 @require_http_methods(["GET"])
@@ -34,31 +35,7 @@ def get_all_cafes(request):
                 {"message": "No cafes found", "success": False}, status=404
             )
 
-        cafe_info_with_distance = []
-        for cafe in cafes:
-            try:
-                cafe_location = LatitudeLongitude(cafe.latitude, cafe.longitude)
-                distance = user_location.distance_to(cafe_location)
-            except ValueError:
-                continue  # 如果經緯度有問題，跳過該咖啡廳
-
-            cafe_info_with_distance.append(
-                {
-                    "cafe_id": str(cafe.cafe_id),
-                    "name": cafe.name,
-                    "grade": cafe.grade,
-                    "open_hour": cafe.open_hour,
-                    "open_now": cafe.open_now,
-                    "distance": round(distance, 4),
-                    "labels": cafe.get_labels(),
-                    "image_url": (
-                        cafe.images.all()[0].image.url if cafe.images.exists() else None
-                    ),
-                }
-            )
-
-        # 根據距離排序
-        cafe_info_with_distance.sort(key=lambda x: x["distance"])
+        cafe_info_with_distance = sort_cafes_by_distance(cafes)
 
         return JsonResponse(
             {"cafes": cafe_info_with_distance, "success": True}, safe=False, status=200
