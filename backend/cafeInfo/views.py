@@ -78,6 +78,7 @@ def get_all_cafes(request):
         return JsonResponse({"message": str(e), "success": False}, status=500)
 
 
+# 只有一間不用排序
 @require_http_methods(["GET"])
 def get_cafe(request):
     cafe_id = request.GET.get("cafe_id", None)
@@ -128,7 +129,27 @@ def filter_cafes_by_labels(request):
     labels = request.GET.getlist(
         "labels"
     )  # Expecting a list of labels from the query parameters
+    user_lat = request.GET.get("latitude")
+    user_lon = request.GET.get("longitude")
+    if not user_lat or not user_lon:
+        return JsonResponse(
+            {"message": "latitude and longitude are required", "success": False},
+            status=400,
+        )
 
+    # 如果經度、緯度不合理
+    try:
+        user_lat = float(user_lat)
+        user_lon = float(user_lon)
+        user_location = LatitudeLongitude(user_lat, user_lon)
+    except ValueError as e:
+        return JsonResponse(
+            {
+                "message": f"Invalid latitude or longitude: {str(e)}",
+                "success": False,
+            },
+            status=400,
+        )
     try:
         cafes = Cafe.objects.filter(legal=True)
         filtered_cafes = [
@@ -143,21 +164,23 @@ def filter_cafes_by_labels(request):
                 status=404,
             )
 
-        partial_cafe_info = [
-            {
-                "cafe_id": str(cafe.cafe_id),
-                "name": cafe.name,
-                "grade": cafe.grade,
-                "open_hour": cafe.open_hour,
-                "open_now": cafe.open_now,
-                "distance": cafe.distance,
-                "labels": cafe.get_labels(),
-                "image_url": (
-                    cafe.images.all()[0].image.url if cafe.images.exists() else None
-                ),
-            }
-            for cafe in filtered_cafes
-        ]
+        cafes_with_distance = calculate_and_sort_cafes(filtered_cafes, user_location)
+        partial_cafe_info = []
+        for distance, cafe in cafes_with_distance:
+            partial_cafe_info.append(
+                {
+                    "cafe_id": str(cafe.cafe_id),
+                    "name": cafe.name,
+                    "grade": cafe.grade,
+                    "open_hour": cafe.open_hour,
+                    "open_now": cafe.open_now,
+                    "distance": distance,
+                    "labels": cafe.get_labels(),
+                    "image_url": (
+                        cafe.images.all()[0].image.url if cafe.images.exists() else None
+                    ),
+                }
+            )
 
         return JsonResponse(
             {"cafes": partial_cafe_info, "success": True}, safe=False, status=200
