@@ -192,6 +192,29 @@ def filter_cafes_by_labels(request):
 @require_http_methods(["GET"])
 def get_top_cafes(request):
     try:
+        user_lat = request.GET.get("latitude")
+        user_lon = request.GET.get("longitude")
+
+        # 如果沒有傳進經度、緯度
+        if not user_lat or not user_lon:
+            return JsonResponse(
+                {"message": "latitude and longitude are required", "success": False},
+                status=400,
+            )
+
+        # 如果經度、緯度不合理
+        try:
+            user_lat = float(user_lat)
+            user_lon = float(user_lon)
+            user_location = LatitudeLongitude(user_lat, user_lon)
+        except ValueError as e:
+            return JsonResponse(
+                {
+                    "message": f"Invalid latitude or longitude: {str(e)}",
+                    "success": False,
+                },
+                status=400,
+            )
         # 按照 ig_post_cnt 降序("-"表降序)排列，取前六名
         top_cafes = Cafe.objects.filter(legal=True).order_by("-ig_post_cnt")[:6]
 
@@ -207,7 +230,9 @@ def get_top_cafes(request):
                 "grade": cafe.grade,
                 "open_hour": cafe.open_hour,
                 "open_now": cafe.open_now,
-                "distance": cafe.distance,
+                "distance": user_location.distance_to(
+                    LatitudeLongitude(cafe.latitude, cafe.longitude)
+                ),
                 "labels": cafe.get_labels(),
                 "image_url": cafe.images.all()[0].image.url
                 if cafe.images.exists()
