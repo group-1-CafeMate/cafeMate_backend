@@ -111,7 +111,6 @@ def get_cafe(request):
             "info": cafe.info,
             "comment": cafe.comment,
             "ig_link": cafe.ig_link,
-            "fb_link": cafe.fb_link,
             "images_urls": images_urls,
         }
 
