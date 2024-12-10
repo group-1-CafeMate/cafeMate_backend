@@ -107,7 +107,6 @@ def get_cafe(request):
             "wiFi": cafe.wiFi,
             "open_hour": cafe.open_hour,
             "open_now": cafe.open_now,
-            "distance": cafe.distance,
             "info": cafe.info,
             "comment": cafe.comment,
             "ig_link": cafe.ig_link,
