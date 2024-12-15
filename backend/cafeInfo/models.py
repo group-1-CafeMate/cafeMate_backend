@@ -1,5 +1,4 @@
 from django.db import models
-from user.models import Profile
 from django.utils import timezone
 import uuid
 
@@ -51,3 +50,12 @@ class Cafe(models.Model):
 class CafeImage(models.Model):
     cafe = models.ForeignKey(Cafe, related_name="images", on_delete=models.CASCADE)
     image = models.ImageField(upload_to="cafe_images/")
+
+
+class MetroStation(models.Model):
+    metro_station_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False, unique=True
+    )
+    name = models.CharField(max_length=50)
+    latitude = models.FloatField(null=False)
+    longitude = models.FloatField(null=False)
