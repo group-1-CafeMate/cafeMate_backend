@@ -150,13 +150,33 @@ def filter_cafes_by_labels(request):
     labels = request.GET.getlist(
         "labels"
     )  # Expecting a list of labels from the query parameters
-    user_lat = request.GET.get("latitude")
-    user_lon = request.GET.get("longitude")
-    if not user_lat or not user_lon:
-        return JsonResponse(
-            {"message": "latitude and longitude are required", "success": False},
-            status=400,
-        )
+
+    # 先檢查是否有傳入 metro_station_id
+    metro_station_id = request.GET.get("metro_station_id")
+
+    if metro_station_id:
+        try:
+            # 從 MetroStation 模型取得經緯度
+            metro_station = get_object_or_404(
+                MetroStation, metro_station_id=metro_station_id
+            )
+            user_lat = metro_station.latitude
+            user_lon = metro_station.longitude
+        except Exception as e:
+            return JsonResponse(
+                {"message": f"Invalid metro_station_id: {str(e)}", "success": False},
+                status=400,
+            )
+    else:
+        # 如果沒有 metro_station_id，則檢查用戶傳入的經緯度
+        user_lat = request.GET.get("latitude")
+        user_lon = request.GET.get("longitude")
+
+        if not user_lat or not user_lon:
+            return JsonResponse(
+                {"message": "latitude and longitude are required", "success": False},
+                status=400,
+            )
 
     # 如果經度、緯度不合理
     try:
