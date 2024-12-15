@@ -1,23 +1,48 @@
-from .models import Cafe, CafeImage
+from .models import Cafe, CafeImage, MetroStation
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from .utils import calculate_and_sort_cafes, LatitudeLongitude
 
 
+from django.shortcuts import get_object_or_404
+
+
 @require_http_methods(["GET"])
 def get_all_cafes(request):
     try:
-        user_lat = request.GET.get("latitude")
-        user_lon = request.GET.get("longitude")
+        # 先檢查是否有傳入 metro_station_id
+        metro_station_id = request.GET.get("metro_station_id")
+        if metro_station_id:
+            try:
+                # 從 MetroStation 模型取得經緯度
+                metro_station = get_object_or_404(
+                    MetroStation, metro_station_id=metro_station_id
+                )
+                user_lat = metro_station.latitude
+                user_lon = metro_station.longitude
+            except Exception as e:
+                return JsonResponse(
+                    {
+                        "message": f"Invalid metro_station_id: {str(e)}",
+                        "success": False,
+                    },
+                    status=400,
+                )
+        else:
+            # 如果沒有 metro_station_id，則使用用戶提供的經緯度
+            user_lat = request.GET.get("latitude")
+            user_lon = request.GET.get("longitude")
 
-        # 如果沒有傳進經度、緯度
-        if not user_lat or not user_lon:
-            return JsonResponse(
-                {"message": "latitude and longitude are required", "success": False},
-                status=400,
-            )
+            if not user_lat or not user_lon:
+                return JsonResponse(
+                    {
+                        "message": "latitude and longitude are required",
+                        "success": False,
+                    },
+                    status=400,
+                )
 
-        # 如果經度、緯度不合理
+        # 檢查經緯度是否合理
         try:
             user_lat = float(user_lat)
             user_lon = float(user_lon)
@@ -64,7 +89,6 @@ def get_all_cafes(request):
                     "info": cafe.info,
                     "comment": cafe.comment,
                     "ig_link": cafe.ig_link,
-                    "fb_link": getattr(cafe, "fb_link", None),  # 如果 Cafe 有此欄位
                     "images_urls": images_urls,  # 包含所有圖片 URL
                 }
             )
