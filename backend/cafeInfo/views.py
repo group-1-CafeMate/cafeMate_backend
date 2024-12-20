@@ -51,12 +51,12 @@ def get_all_cafes(request):
                     "name": cafe.name,
                     "phone": cafe.phone,
                     "addr": cafe.addr,
-                    "quiet": cafe.quiet,
+                    "work_and_study_friendly": cafe.work_and_study_friendly,
                     "grade": cafe.grade,
                     "time_unlimit": cafe.time_unlimit,
                     "time_limit": cafe.time_limit,
                     "socket": cafe.socket,
-                    "pets_allowed": cafe.pets_allowed,
+                    "pets_allowed": cafe.pets_allowed, 
                     "wiFi": cafe.wiFi,
                     "open_hour": cafe.open_hour,
                     "open_now": cafe.open_now,
@@ -64,7 +64,6 @@ def get_all_cafes(request):
                     "info": cafe.info,
                     "comment": cafe.comment,
                     "ig_link": cafe.ig_link,
-                    "fb_link": getattr(cafe, "fb_link", None),  # 如果 Cafe 有此欄位
                     "images_urls": images_urls,  # 包含所有圖片 URL
                 }
             )
@@ -97,7 +96,7 @@ def get_cafe(request):
             "name": cafe.name,
             "phone": cafe.phone,
             "addr": cafe.addr,
-            "quiet": cafe.quiet,
+            "work_and_study_friendly": cafe.work_and_study_friendly,
             "grade": cafe.grade,
             "time_unlimit": cafe.time_unlimit,
             "time_limit": cafe.time_limit,
