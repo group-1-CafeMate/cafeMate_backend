@@ -1,0 +1,400 @@
+{
+    "places": [
+        { 
+            "name": "Congrats Café",
+            "gmap_link": "",
+            "rating": "4.4",
+            "address": "106台北市大安區文昌街49號 ",
+            "phone": "02 2700 6639 ",
+            "business_hours": {
+                "星期四": "09:00–22:00",
+                "星期五": "09:00–22:00",
+                "星期六": "13:00–22:00",
+                "星期日": "13:00–22:00",
+                "星期一": "09:00–22:00",
+                "星期二": "09:00–22:00",
+                "星期三": "09:00–22:00"
+            },
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": true,
+                "work_and_study_friendly": true
+            }
+        },
+        {
+            "name": "Beans & Coffee",
+            "gmap_link": "https://www.google.com/maps/place/BeansLab+coffee+%E8%B1%86%E7%A0%94%E5%92%96%E5%95%A1%E9%A4%A8/data=!4m7!3m6!1s0x3442aa289a123d59:0x3d0c500719283cd6!8m2!3d25.0219185!4d121.5408509!16s%2Fg%2F11c0rnjp0q!19sChIJWT0SmiiqQjQR1jwoGQdQDD0?authuser=0&hl=zh-TW&rclk=1",
+            "rating": "4.7",
+            "address": "106台北市大安區辛亥路二段171巷6弄6號 ",
+            "phone": "02 2739 6600 ",
+            "business_hours": {
+                "星期四": "09:00–18:00",
+                "星期五": "09:00–18:00",
+                "星期六": "09:00–17:00",
+                "星期日": "休息",
+                "星期一": "09:00–18:00",
+                "星期二": "09:00–18:00",
+                "星期三": "09:00–18:00"
+            },
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": false,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": true
+            }
+        },
+        {
+            "name": "湛盧咖啡（市府館）",
+            "gmap_link": "",
+            "rating": "4.4",
+            "address": "11072台北市信義區忠孝東路四段553巷6弄4號 ",
+            "phone": "02 2763 9909 ",
+            "business_hours": {
+                "星期五": "10:00–19:00",
+                "星期六": "10:00–19:00",
+                "星期日": "10:00–19:00",
+                "星期一": "10:00–19:00",
+                "星期二": "10:00–19:00",
+                "星期三": "10:00–19:00",
+                "星期四": "10:00–19:00"
+            },
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": true
+            }
+        },
+        {
+            "name": "KOKU café 榖珈琲",
+            "gmap_link": "",
+            "rating": "4.4",
+            "address": "106台北市大安區大安路一段175巷6號 ",
+            "phone": "02 2709 5799 ",
+            "business_hours": {
+                "星期五": "10:00–22:00",
+                "星期六": "10:00–22:00",
+                "星期日": "10:00–22:00",
+                "星期一": "10:00–19:00",
+                "星期二": "10:00–19:00",
+                "星期三": "10:00–19:00",
+                "星期四": "10:00–19:00"
+            },
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": false,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": true
+            }
+        },
+        {
+            "name": "C25度咖啡館",
+            "gmap_link": "",
+            "rating": "",
+            "address": "106台北市大安區安和路一段21巷23號 ",
+            "phone": "02 2781 8902 ",
+            "business_hours": {
+                "": ""
+            },
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "FabCafe",
+            "gmap_link": "",
+            "rating": "",
+            "address": "108台北市萬華區中華路一段76巷12號 ",
+            "phone": "02 2371 0018 ",
+            "business_hours": {
+                "": ""
+            },
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": false,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": true
+            }
+        },
+        {
+            "name": "菸花Op.118.2",
+            "gmap_link": "",
+            "rating": "",
+            "address": "10343台北市大同區迪化街一段14巷37號菸花一、二樓 ",
+            "phone": "02 2555 6700 ",
+            "business_hours": {
+                "": ""
+            },
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": false,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "特有種商行",
+            "gmap_link": "",
+            "rating": "",
+            "address": "100台北市中正區臨沂街27巷4-1號 ",
+            "phone": "02 2341 1785 ",
+            "business_hours": {
+                "": ""
+            },
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": false,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "Orange看電車咖啡館",
+            "gmap_link": "",
+            "rating": "",
+            "address": "111台北市士林區文林路302號 ",
+            "phone": "02 2888 1220 ",
+            "business_hours": {
+                "": ""
+            },
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "Pica Pica Café 喜鵲咖啡",
+            "gmap_link": "",
+            "rating": "",
+            "address": "106台北市大安區羅斯福路三段269巷74號 ",
+            "phone": "02 2362 8690 ",
+            "business_hours": {
+                "星期五": "13:00–22:45",
+                "星期六": "13:00–22:45",
+                "星期日": "13:00–22:45",
+                "星期一": "13:00–22:45",
+                "星期二": "13:00–22:45",
+                "星期三": "13:00–22:45",
+                "星期四": "13:00–22:45"
+            },
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "Current Café 此刻咖啡",
+            "gmap_link": "",
+            "rating": "",
+            "address": "105台北市松山區寧安街5-1號號 ",
+            "phone": "02 2578 8129 ",
+            "business_hours": {
+                "": ""
+            },
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": false,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "勾癮咖啡GOEE COFFEE",
+            "gmap_link": "https://www.google.com/maps/place/%E5%8B%BE%E7%99%AE%E5%92%96%E5%95%A1/data=!4m7!3m6!1s0x34680322d3048aad:0x26995293862c4585!8m2!3d24.9968638!4d121.4871906!16s%2Fg%2F11krkdll2z!19sChIJrYoE0yIDaDQRhUUshpNSmSY?authuser=0&hl=zh-TW&rclk=1",
+            "rating": "",
+            "address": "235新北市中和區連城路250號I棟1樓 ",
+            "phone": "02 8228 0861 ",
+            "business_hours": {
+                "": ""
+            },
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": false,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "未央咖啡店",
+            "gmap_link": "",
+            "rating": "4.1",
+            "address": "106台北市大安區四維路208巷10號 ",
+            "phone": "02 2703 2331 ",
+            "business_hours": {
+                "星期五": "13:00–01:00",
+                "星期六": "13:00–01:00",
+                "星期日": "13:00–01:00",
+                "星期一": "13:00–01:00",
+                "星期二": "13:00–01:00",
+                "星期三": "13:00–01:00",
+                "星期四": "13:00–01:00"
+            },
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": true,
+                "work_and_study_friendly": true
+            }
+        },
+        {
+            "name": "Miracle Coffee",
+            "gmap_link": "https://www.google.com/maps/place/Miracle+Coffee+%E6%9D%B1%E5%8D%80/data=!4m7!3m6!1s0x3442ab5f54dd51b3:0xf504eb931791f772!8m2!3d25.038977!4d121.5559262!16s%2Fg%2F11fwcgj3b5!19sChIJs1HdVF-rQjQRcveRF5PrBPU?authuser=0&hl=zh-TW&rclk=1",
+            "rating": "4.2",
+            "address": "No. 34, No. 34號光復南路308巷大安區台北市106076 ",
+            "phone": "02 8771 8071 ",
+            "business_hours": {
+                "星期六": "11:00–19:30",
+                "星期日": "11:00–19:30",
+                "星期一": "11:00–19:30",
+                "星期二": "11:00–19:30",
+                "星期三": "11:00–19:30",
+                "星期四": "11:00–19:30",
+                "星期五": "11:00–19:30"
+            },
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": true,
+                "work_and_study_friendly": true
+            }
+        },
+        {
+            "name": "折田菓舖",
+            "gmap_link": "",
+            "rating": "4.3",
+            "address": "106台北市大安區仁愛路三段123巷6號1F ",
+            "phone": "02 2721 6350 ",
+            "business_hours": {
+                "星期六": "12:00–19:30",
+                "星期日": "12:00–19:30",
+                "星期一": "12:00–19:30",
+                "星期二": "12:00–19:30",
+                "星期三": "12:00–19:30",
+                "星期四": "12:00–19:30",
+                "星期五": "12:00–19:30"
+            },
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": false,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "Libo cafe",
+            "gmap_link": "",
+            "rating": "4.3",
+            "address": "104台北市中山區中山北路二段42巷12號 ",
+            "phone": "02 2567 1237 ",
+            "business_hours": {
+                "星期六": "09:00–18:00",
+                "星期日": "09:45–18:00",
+                "星期一": "07:30–18:30",
+                "星期二": "07:30–18:30",
+                "星期三": "07:30–18:30",
+                "星期四": "07:30–18:30",
+                "星期五": "07:30–18:30"
+            },
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "Tiecafe",
+            "gmap_link": "",
+            "rating": "4.5",
+            "address": "一樓, No. 56號成功路二段426巷內湖區台北市114 ",
+            "phone": "02 2794 0159 ",
+            "business_hours": {
+                "星期六": "14:00–23:00",
+                "星期日": "14:00–23:00",
+                "星期一": "14:00–23:00",
+                "星期二": "14:00–23:00",
+                "星期三": "14:00–23:00",
+                "星期四": "14:00–23:00",
+                "星期五": "14:00–23:00"
+            },
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": false,
+                "pet_friendly": false,
+                "has_wifi": false,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "Out of office 不在辦公室",
+            "gmap_link": "https://www.google.com/maps/place/Out+Of+Office+Coffee+Roastery+%E4%B8%8D%E5%9C%A8%E8%BE%A6%E5%85%AC%E5%AE%A4+%E9%87%91%E8%8F%AF%E5%BA%97/data=!4m7!3m6!1s0x3442a9141c91d275:0x483f8d4bdd1ccd7f!8m2!3d25.0299935!4d121.5283759!16s%2Fg%2F11lcbdslw2!19sChIJddKRHBSpQjQRf80c3UuNP0g?authuser=0&hl=zh-TW&rclk=1",
+            "rating": "",
+            "address": "106台北市大安區金華街207號 ",
+            "phone": "02 2394 8000 ",
+            "business_hours": {
+                "": ""
+            },
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": true,
+                "work_and_study_friendly": true
+            }
+        },
+        {
+            "name": "Hater Cafe",
+            "gmap_link": "",
+            "rating": "4.1",
+            "address": "100台北市中正區羅斯福路四段146號 ",
+            "phone": "02 2365 0098 ",
+            "business_hours": {},
+            "labels": {
+                "unlimited_time": true,
+                "has_outlets": true,
+                "pet_friendly": false,
+                "has_wifi": true,
+                "work_and_study_friendly": false
+            }
+        },
+        {
+            "name": "遇見貓咖啡輕食館",
+            "gmap_link": "",
+            "rating": "4.3",
+            "address": "234新北市永和區安樂路248號之3號 ",
+            "phone": "02 8668 6999 ",
+            "business_hours": {},
+            "labels": {
+                "unlimited_time": false,
+                "has_outlets": true,
+                "pet_friendly": true,
+                "has_wifi": false,
+                "work_and_study_friendly": true
+            }
+        }
+    ]
+}
