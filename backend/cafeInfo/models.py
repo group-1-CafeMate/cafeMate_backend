@@ -13,7 +13,7 @@ class Cafe(models.Model):
     work_and_study_friendly = models.BooleanField()  # true: 適合讀書或工作
     grade = models.CharField(max_length=50)
     time_unlimit = models.BooleanField()
-    time_limit = models.CharField(max_length=50)  # 限時幾小時
+    # time_limit = models.CharField(max_length=50)  # 限時幾小時
     socket = models.BooleanField(blank=True, null=True)
     pets_allowed = models.BooleanField()  # True: 寵物咖啡廳
     wiFi = models.BooleanField()
