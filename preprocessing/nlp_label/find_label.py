@@ -34,8 +34,8 @@ def match_keywords_in_reviews(reviews, keywords):
 with open("../top20_cafes_info.json", "r", encoding="utf-8") as file:
     cafe_data = json.load(file)
 
-# 讀取 top20_cafes_intro_and_reviews.json
-with open("../top20_cafes_intro_and_reviews.json", "r", encoding="utf-8") as file:
+# 讀取 top20_cafes_contents_and_reviews.json
+with open("../top20_cafes_contents_and_reviews.json", "r", encoding="utf-8") as file:
     review_data = json.load(file)
 
 # 更新每間咖啡廳的標籤
