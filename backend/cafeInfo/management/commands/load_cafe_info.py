@@ -23,7 +23,11 @@ class Command(BaseCommand):
                 for item in data:
                     cafes.append(
                         Cafe(
-                            name=item["name"], phone=item["phone"], addr=item["address"]
+                            name=item["name"],
+                            phone=item["phone"],
+                            addr=item["address"],
+                            ig_link=item["ig_location_link"],
+                            gmap_link=item["gmap_link"],
                         )
                     )
                 Cafe.objects.bulk_create(cafes)

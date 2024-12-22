@@ -17,7 +17,7 @@ class Cafe(models.Model):
     # time_limit = models.CharField(max_length=50)  # 限時幾小時
     socket = models.BooleanField(blank=True, null=True)
     pets_allowed = models.BooleanField()  # True: 寵物咖啡廳
-    wiFi = models.BooleanField()
+    wifi = models.BooleanField()
     open_hour = models.CharField(max_length=100)
     open_now = models.BooleanField()
     latitude = models.FloatField(null=False)
@@ -25,6 +25,7 @@ class Cafe(models.Model):
     info = models.TextField()
     comment = models.TextField()
     ig_link = models.CharField(max_length=500, blank=True, null=True)
+    gmap_link = models.CharField(max_length=500, blank=True, null=True)
     post_date = models.DateTimeField(default=timezone.now)
     ig_post_cnt = models.IntegerField()
 
