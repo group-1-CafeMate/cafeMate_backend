@@ -28,6 +28,10 @@ class Command(BaseCommand):
                             addr=item["address"],
                             ig_link=item["ig_location_link"],
                             gmap_link=item["gmap_link"],
+                            rating=item["rating"],
+                            ig_post_cnt=item["ig_post_cnt"],
+                            latitude=item["latitude"],
+                            longitude=item["longitude"],
                         )
                     )
                 Cafe.objects.bulk_create(cafes)

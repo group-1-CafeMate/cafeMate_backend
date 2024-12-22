@@ -12,7 +12,7 @@ class Cafe(models.Model):
     phone = models.CharField(max_length=50)
     addr = models.CharField(max_length=100)
     work_and_study_friendly = models.BooleanField()  # true: 適合讀書或工作
-    grade = models.CharField(max_length=50)
+    rating = models.FloatField(max_length=10)
     time_unlimit = models.BooleanField()
     # time_limit = models.CharField(max_length=50)  # 限時幾小時
     socket = models.BooleanField(blank=True, null=True)
