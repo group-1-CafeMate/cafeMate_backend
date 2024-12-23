@@ -11,7 +11,7 @@ class Cafe(models.Model):
     phone = models.CharField(max_length=50)
     addr = models.CharField(max_length=100)
     work_and_study_friendly = models.BooleanField()  # true: 適合讀書或工作
-    grade = models.CharField(max_length=50)
+    rating = models.FloatField()
     time_unlimit = models.BooleanField()
     # time_limit = models.CharField(max_length=50)  # 限時幾小時
     socket = models.BooleanField(blank=True, null=True)
@@ -24,6 +24,7 @@ class Cafe(models.Model):
     info = models.TextField() 
     comment = models.TextField()
     ig_link = models.CharField(max_length=500, blank=True, null=True)
+    gmap_link = models.CharField(max_length=500, blank=True, null=True)
     post_date = models.DateTimeField(default=timezone.now)
     ig_post_cnt = models.IntegerField()
 
