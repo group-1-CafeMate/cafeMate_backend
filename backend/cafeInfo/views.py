@@ -77,7 +77,7 @@ def get_all_cafes(request):
                     "phone": cafe.phone,
                     "addr": cafe.addr,
                     "work_and_study_friendly": cafe.work_and_study_friendly,
-                    "grade": cafe.grade,
+                    "rating": cafe.rating,
                     "time_unlimit": cafe.time_unlimit,
                     "socket": cafe.socket,
                     "pets_allowed": cafe.pets_allowed,
@@ -121,7 +121,7 @@ def get_cafe(request):
             "phone": cafe.phone,
             "addr": cafe.addr,
             "work_and_study_friendly": cafe.work_and_study_friendly,
-            "grade": cafe.grade,
+            "rating": cafe.rating,
             "time_unlimit": cafe.time_unlimit,
             "socket": cafe.socket,
             "pets_allowed": cafe.pets_allowed,
@@ -131,6 +131,7 @@ def get_cafe(request):
             "info": cafe.info,
             "comment": cafe.comment,
             "ig_link": cafe.ig_link,
+            "gmap_link": cafe.gmap_link,
             "images_urls": images_urls,
         }
 
@@ -210,7 +211,7 @@ def filter_cafes_by_labels(request):
                 {
                     "cafe_id": str(cafe.cafe_id),
                     "name": cafe.name,
-                    "grade": cafe.grade,
+                    "rating": cafe.rating,
                     "open_hour": cafe.open_hour,
                     "open_now": cafe.open_now,
                     "distance": distance,
@@ -293,7 +294,7 @@ def get_top_cafes(request):
             {
                 "cafe_id": str(cafe.cafe_id),
                 "name": cafe.name,
-                "grade": cafe.grade,
+                "rating": cafe.rating,
                 "open_hour": cafe.open_hour,
                 "open_now": cafe.open_now,
                 "distance": user_location.distance_to(
