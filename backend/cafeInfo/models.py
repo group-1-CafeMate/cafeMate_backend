@@ -3,7 +3,6 @@ from django.utils import timezone
 import uuid
 
 
-# Create your models here.
 class Cafe(models.Model):
     cafe_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, unique=True
@@ -12,7 +11,7 @@ class Cafe(models.Model):
     phone = models.CharField(max_length=50)
     addr = models.CharField(max_length=100)
     work_and_study_friendly = models.BooleanField()  # true: 適合讀書或工作
-    rating = models.FloatField()
+    rating = models.FloatField(default=0)
     time_unlimit = models.BooleanField()
     socket = models.BooleanField(blank=True, null=True)
     pets_allowed = models.BooleanField()  # True: 寵物咖啡廳
@@ -27,7 +26,6 @@ class Cafe(models.Model):
     post_date = models.DateTimeField(default=timezone.now)
     ig_post_cnt = models.IntegerField()
 
-    # -------------- 以下不用顯示於前端 --------------
     legal = models.BooleanField(blank=True, null=True)
 
     def get_labels(self):
@@ -43,6 +41,21 @@ class Cafe(models.Model):
         if self.work_and_study_friendly:
             label_list.append("適合讀書或工作")
         return label_list
+
+
+class OperatingHours(models.Model):
+    cafe = models.ForeignKey(
+        Cafe, on_delete=models.CASCADE, related_name="operating_hours"
+    )
+    day_of_week = models.CharField(max_length=10)
+    open_time = models.CharField(max_length=25)
+    close_time = models.CharField(max_length=25)
+
+    class Meta:
+        unique_together = ("cafe", "day_of_week")  # 確保每個咖啡廳的營業日唯一
+
+    def __str__(self):
+        return f"{self.cafe.name} - {self.day_of_week}: {self.open_time} to {self.close_time}"
 
 
 class CafeImage(models.Model):
