@@ -2,7 +2,6 @@ from django.db import models
 from django.utils import timezone
 import uuid
 
-
 # Create your models here.
 class Cafe(models.Model):
     cafe_id = models.UUIDField(
@@ -12,17 +11,17 @@ class Cafe(models.Model):
     phone = models.CharField(max_length=50)
     addr = models.CharField(max_length=100)
     work_and_study_friendly = models.BooleanField()  # true: 適合讀書或工作
-    rating = models.FloatField(max_length=10)
+    rating = models.FloatField()
     time_unlimit = models.BooleanField()
     # time_limit = models.CharField(max_length=50)  # 限時幾小時
     socket = models.BooleanField(blank=True, null=True)
     pets_allowed = models.BooleanField()  # True: 寵物咖啡廳
-    wifi = models.BooleanField()
+    wiFi = models.BooleanField()
     open_hour = models.CharField(max_length=100)
     open_now = models.BooleanField()
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
-    info = models.TextField()
+    info = models.TextField() 
     comment = models.TextField()
     ig_link = models.CharField(max_length=500, blank=True, null=True)
     gmap_link = models.CharField(max_length=500, blank=True, null=True)
@@ -45,7 +44,6 @@ class Cafe(models.Model):
         if self.work_and_study_friendly:
             label_list.append("適合讀書或工作")
         return label_list
-
 
 class CafeImage(models.Model):
     cafe = models.ForeignKey(Cafe, related_name="images", on_delete=models.CASCADE)

@@ -76,13 +76,12 @@ def get_all_cafes(request):
                     "name": cafe.name,
                     "phone": cafe.phone,
                     "addr": cafe.addr,
-                    "quiet": cafe.quiet,
-                    "grade": cafe.grade,
+                    "work_and_study_friendly": cafe.work_and_study_friendly,
+                    "rating": cafe.rating,
                     "time_unlimit": cafe.time_unlimit,
-                    "time_limit": cafe.time_limit,
                     "socket": cafe.socket,
                     "pets_allowed": cafe.pets_allowed,
-                    "wiFi": cafe.wifi,
+                    "wiFi": cafe.wiFi,
                     "open_hour": cafe.open_hour,
                     "open_now": cafe.open_now,
                     "distance": distance,
@@ -121,18 +120,18 @@ def get_cafe(request):
             "name": cafe.name,
             "phone": cafe.phone,
             "addr": cafe.addr,
-            "quiet": cafe.quiet,
-            "grade": cafe.grade,
+            "work_and_study_friendly": cafe.work_and_study_friendly,
+            "rating": cafe.rating,
             "time_unlimit": cafe.time_unlimit,
-            "time_limit": cafe.time_limit,
             "socket": cafe.socket,
             "pets_allowed": cafe.pets_allowed,
-            "wiFi": cafe.wifi,
+            "wiFi": cafe.wiFi,
             "open_hour": cafe.open_hour,
             "open_now": cafe.open_now,
             "info": cafe.info,
             "comment": cafe.comment,
             "ig_link": cafe.ig_link,
+            "gmap_link": cafe.gmap_link,
             "images_urls": images_urls,
         }
 
@@ -201,7 +200,7 @@ def filter_cafes_by_labels(request):
 
         if not filtered_cafes:
             return JsonResponse(
-                {"message": "No cafes match the given labels", "success": False},
+                {"message": "No cafes match the given labels", "success": False}, 
                 status=404,
             )
 
@@ -212,7 +211,7 @@ def filter_cafes_by_labels(request):
                 {
                     "cafe_id": str(cafe.cafe_id),
                     "name": cafe.name,
-                    "grade": cafe.grade,
+                    "rating": cafe.rating,
                     "open_hour": cafe.open_hour,
                     "open_now": cafe.open_now,
                     "distance": distance,
@@ -228,7 +227,9 @@ def filter_cafes_by_labels(request):
         )
 
     except Exception as e:
-        return JsonResponse({"message": str(e), "success": False}, status=500)
+        return JsonResponse(
+            {"message": str(e), "success": False}, status=500
+        )
 
 
 @require_http_methods(["GET"])
@@ -272,6 +273,7 @@ def get_top_cafes(request):
             user_lat = float(user_lat)
             user_lon = float(user_lon)
             user_location = LatitudeLongitude(user_lat, user_lon)
+
         except ValueError as e:
             return JsonResponse(
                 {
@@ -292,7 +294,7 @@ def get_top_cafes(request):
             {
                 "cafe_id": str(cafe.cafe_id),
                 "name": cafe.name,
-                "grade": cafe.grade,
+                "rating": cafe.rating,
                 "open_hour": cafe.open_hour,
                 "open_now": cafe.open_now,
                 "distance": user_location.distance_to(
@@ -311,4 +313,6 @@ def get_top_cafes(request):
         )
 
     except Exception as e:
-        return JsonResponse({"message": str(e), "success": False}, status=500)
+        return JsonResponse(
+            {"message": str(e), "success": False}, status=500
+        )
