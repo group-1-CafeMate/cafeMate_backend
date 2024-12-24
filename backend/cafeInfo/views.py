@@ -156,9 +156,15 @@ def get_cafe(request):
 
 @require_http_methods(["GET"])
 def filter_cafes_by_labels(request):
-    labels = request.GET.getlist(
-        "labels"
-    )  # Expecting a list of labels from the query parameters
+    filters = {
+        "work_and_study_friendly": request.GET.get("work_and_study_friendly"),
+        "socket": request.GET.get("socket"),
+        "time_unlimit": request.GET.get("time_unlimit"),
+        "wiFi": request.GET.get("wifi"),
+        "pets_allowed": request.GET.get("pets_allowed"),
+    }
+
+    filters = {key: True for key, value in filters.items() if value == "true"}
 
     # 先檢查是否有傳入 metro_station_id
     metro_station_id = request.GET.get("metro_station_id")
@@ -201,29 +207,22 @@ def filter_cafes_by_labels(request):
             status=400,
         )
     try:
-        cafes = Cafe.objects.filter(legal=True)
-        filtered_cafes = [
-            cafe
-            for cafe in cafes
-            if any(label in cafe.get_labels() for label in labels)
-        ]
-
-        if not filtered_cafes:
+        cafes = Cafe.objects.filter(legal=True, **filters)
+        if not cafes:
             return JsonResponse(
                 {"message": "No cafes match the given labels", "success": False},
                 status=404,
             )
-
-        cafes_with_distance = calculate_and_sort_cafes(filtered_cafes, user_location)
+        cafes_with_distance = calculate_and_sort_cafes(cafes, user_location)
         partial_cafe_info = []
         for distance, cafe in cafes_with_distance:
+            open_hour_list = get_open_hour_list(cafe)
             partial_cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
                     "name": cafe.name,
                     "rating": cafe.rating,
-                    "open_hour": cafe.open_hour,
-                    "open_now": cafe.open_now,
+                    "open_hour": open_hour_list,
                     "distance": distance,
                     "labels": cafe.get_labels(),
                     "image_url": (
