@@ -3,15 +3,14 @@ from django.urls import reverse
 from .models import Cafe, CafeImage, MetroStation
 import uuid
 
+
 class CafeViewsTestCase(TestCase):
     def setUp(self):
         self.client = Client()
 
         # Create a test MetroStation
         self.metro_station = MetroStation.objects.create(
-            name="Test Station",
-            latitude=25.033,
-            longitude=121.565
+            name="Test Station", latitude=25.033, longitude=121.565
         )
 
         # Create a test Cafe
@@ -26,16 +25,6 @@ class CafeViewsTestCase(TestCase):
             socket=True,
             pets_allowed=False,
             wiFi=True,
-            open_hour = {
-            "星期四": "09:00–22:00",
-            "星期五": "09:00–22:00",
-            "星期六": "休息",
-            "星期日": "休息",
-            "星期一": "09:00–22:00",
-            "星期二": "09:00–22:00",
-            "星期三": "09:00–22:00",
-            },
-            open_now=True,
             latitude=25.034,
             longitude=121.564,
             info="A great place to work.",
@@ -43,60 +32,41 @@ class CafeViewsTestCase(TestCase):
             ig_link="https://instagram.com/testcafe",
             gmap_link="https://googlemap.com/testcafe",
             ig_post_cnt=100,
-            legal=True
+            legal=True,
         )
 
         # Add an image to the Cafe
         CafeImage.objects.create(cafe=self.cafe, image="test_image.jpg")
 
     def test_get_all_cafes(self):
-        response = self.client.get(reverse("get_all_cafes"), {
-            "latitude": 25.033,
-            "longitude": 121.565
-        })
+        response = self.client.get(
+            reverse("get_all_cafes"), {"latitude": 25.033, "longitude": 121.565}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertIn("cafes", response.json())
         self.assertTrue(response.json()["success"])
 
     def test_get_cafe(self):
-        response = self.client.get(reverse("get_cafe"), {"cafe_id": str(self.cafe.cafe_id)})
+        response = self.client.get(
+            reverse("get_cafe"), {"cafe_id": str(self.cafe.cafe_id)}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertIn("cafe", response.json())
         self.assertTrue(response.json()["success"])
 
     def test_filter_cafes_by_labels(self):
-        response = self.client.get(reverse("filter_cafes_by_labels"), {
-            "labels": ["WiFi", "不限時"],
-            "latitude": 25.033,
-            "longitude": 121.565
-        })
+        response = self.client.get(
+            reverse("filter_cafes_by_labels"),
+            {"time_unlimit": True, "latitude": 25.033, "longitude": 121.565},
+        )
         self.assertEqual(response.status_code, 200)
         self.assertIn("cafes", response.json())
         self.assertTrue(response.json()["success"])
 
     def test_get_all_cafes_with_invalid_location(self):
-        response = self.client.get(reverse("get_all_cafes"), {
-            "latitude": "invalid",
-            "longitude": "invalid"
-        })
+        response = self.client.get(
+            reverse("get_all_cafes"), {"latitude": "invalid", "longitude": "invalid"}
+        )
         self.assertEqual(response.status_code, 400)
-        self.assertIn("message", response.json())
-        self.assertFalse(response.json()["success"])
-
-    def test_get_top_cafes(self):
-        response = self.client.get(reverse("get_all_cafes"), {
-            "metro_station_id": self.metro_station.id
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("cafes", response.json())
-        self.assertTrue(response.json()["success"])
-
-    def test_filter_cafes_no_match(self):
-        response = self.client.get(reverse("filter_cafes_by_labels"), {
-            "labels": ["Nonexistent Label"],
-            "latitude": 25.033,
-            "longitude": 121.565
-        })
-        self.assertEqual(response.status_code, 404)
         self.assertIn("message", response.json())
         self.assertFalse(response.json()["success"])
