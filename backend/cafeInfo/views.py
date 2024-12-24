@@ -5,6 +5,12 @@ from .utils import calculate_and_sort_cafes, LatitudeLongitude
 
 
 from django.shortcuts import get_object_or_404
+from django.contrib.sites.shortcuts import get_current_site
+
+
+def generate_image_url(request, relative_path: str) -> str:
+    site_url = f"http://{get_current_site(request).domain}/"
+    return f"{site_url}{relative_path}"
 
 
 def get_open_hour_list(cafe: Cafe):
@@ -80,7 +86,9 @@ def get_all_cafes(request):
         # 格式化為包含所需資訊的列表
         cafe_info = []
         for distance, cafe in cafes_with_distance:
-            images_urls = [img.image.url for img in cafe.images.all()]  # 提取所有圖片 URL
+            images_urls = [
+                generate_image_url(request, img.image.url) for img in cafe.images.all()
+            ]  # 提取所有圖片 URL
             open_hour_list = get_open_hour_list(cafe)
             cafe_info.append(
                 {
@@ -124,7 +132,9 @@ def get_cafe(request):
     try:
         cafe = Cafe.objects.get(cafe_id=cafe_id)
         cafe_images = CafeImage.objects.filter(cafe=cafe)
-        images_urls = [image.image.url for image in cafe_images]
+        images_urls = [
+            generate_image_url(request, image.image.url) for image in cafe_images
+        ]
 
         open_hour_list = get_open_hour_list(cafe)
         cafe_info = {
@@ -226,7 +236,9 @@ def filter_cafes_by_labels(request):
                     "distance": distance,
                     "labels": cafe.get_labels(),
                     "image_url": (
-                        cafe.images.all()[0].image.url if cafe.images.exists() else None
+                        generate_image_url(request, cafe.images.all()[0].image.url)
+                        if cafe.images.exists()
+                        else None
                     ),
                 }
             )
@@ -302,12 +314,12 @@ def get_top_cafes(request):
                 "cafe_id": str(cafe.cafe_id),
                 "name": cafe.name,
                 "rating": cafe.rating,
-                "open_hour": cafe.open_hour,
+                "open_hour": get_open_hour_list(cafe),
                 "distance": user_location.distance_to(
                     LatitudeLongitude(cafe.latitude, cafe.longitude)
                 ),
                 "labels": cafe.get_labels(),
-                "image_url": cafe.images.all()[0].image.url
+                "image_url": generate_image_url(request, cafe.images.all()[0].image.url)
                 if cafe.images.exists()
                 else None,
             }

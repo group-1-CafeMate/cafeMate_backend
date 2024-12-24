@@ -90,7 +90,7 @@ class Command(BaseCommand):
 
                         image_dir = os.path.join(settings.MEDIA_ROOT, "cafe_images")
                         image_relative_path = os.path.join(
-                            settings.MEDIA_URL, "cafe_images", f"{item['name']}.jpg"
+                            "cafe_images", f"{item['name']}.jpg"
                         )
                         image_path = os.path.join(image_dir, f"{item['name']}.jpg")
                         if os.path.isfile(image_path):
