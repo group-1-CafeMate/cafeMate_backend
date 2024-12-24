@@ -26,7 +26,7 @@ class Cafe(models.Model):
     post_date = models.DateTimeField(default=timezone.now)
     ig_post_cnt = models.IntegerField()
 
-    legal = models.BooleanField(blank=True, null=True)
+    legal = models.BooleanField(blank=True, default=True)
 
     def get_labels(self):
         label_list = []
