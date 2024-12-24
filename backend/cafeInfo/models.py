@@ -10,13 +10,7 @@ class Cafe(models.Model):
     name = models.CharField(max_length=50)
     phone = models.CharField(max_length=50)
     addr = models.CharField(max_length=100)
-    work_and_study_friendly = models.BooleanField()  # true: 適合讀書或工作
-    rating = models.FloatField(default=0)
-    time_unlimit = models.BooleanField()
-    socket = models.BooleanField(blank=True, null=True)
-    pets_allowed = models.BooleanField()  # True: 寵物咖啡廳
-    wiFi = models.BooleanField()
-    open_hour = models.CharField(max_length=100)
+    rating = models.FloatField()
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
     info = models.TextField()
@@ -25,8 +19,17 @@ class Cafe(models.Model):
     gmap_link = models.CharField(max_length=500, blank=True, null=True)
     post_date = models.DateTimeField(default=timezone.now)
     ig_post_cnt = models.IntegerField()
-
+    # labels
+    time_unlimit = models.BooleanField()
+    socket = models.BooleanField(blank=True, null=True)
+    pets_allowed = models.BooleanField()  # True: 寵物咖啡廳
+    work_and_study_friendly = models.BooleanField()  # true: 適合讀書或工作
+    wiFi = models.BooleanField()
+    # 不回給前端
     legal = models.BooleanField(blank=True, default=True)
+
+    def __str__(self):
+        return f"{self.name}"
 
     def get_labels(self):
         label_list = []
