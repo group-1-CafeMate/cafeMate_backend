@@ -7,6 +7,18 @@ from .utils import calculate_and_sort_cafes, LatitudeLongitude
 from django.shortcuts import get_object_or_404
 
 
+def get_open_hour_list(cafe: Cafe):
+    operating_hours = cafe.operating_hours.all()
+    return [
+        {
+            "day_of_week": hour.day_of_week,
+            "open_time": hour.open_time,
+            "close_time": hour.close_time,
+        }
+        for hour in operating_hours
+    ]
+
+
 @require_http_methods(["GET"])
 def get_all_cafes(request):
     try:
@@ -57,7 +69,6 @@ def get_all_cafes(request):
             )
 
         cafes = Cafe.objects.filter(legal=True)
-
         if not cafes.exists():
             return JsonResponse(
                 {"message": "No cafes found", "success": False}, status=404
@@ -70,6 +81,7 @@ def get_all_cafes(request):
         cafe_info = []
         for distance, cafe in cafes_with_distance:
             images_urls = [img.image.url for img in cafe.images.all()]  # 提取所有圖片 URL
+            open_hour_list = get_open_hour_list(cafe)
             cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
@@ -82,8 +94,7 @@ def get_all_cafes(request):
                     "socket": cafe.socket,
                     "pets_allowed": cafe.pets_allowed,
                     "wiFi": cafe.wiFi,
-                    "open_hour": cafe.open_hour,
-                    "open_now": cafe.open_now,
+                    "open_hour": open_hour_list,
                     "distance": distance,
                     "info": cafe.info,
                     "comment": cafe.comment,
@@ -115,6 +126,7 @@ def get_cafe(request):
         cafe_images = CafeImage.objects.filter(cafe=cafe)
         images_urls = [image.image.url for image in cafe_images]
 
+        open_hour_list = get_open_hour_list(cafe)
         cafe_info = {
             "cafe_id": str(cafe.cafe_id),
             "name": cafe.name,
@@ -126,15 +138,13 @@ def get_cafe(request):
             "socket": cafe.socket,
             "pets_allowed": cafe.pets_allowed,
             "wiFi": cafe.wiFi,
-            "open_hour": cafe.open_hour,
-            "open_now": cafe.open_now,
+            "open_hour": open_hour_list,
             "info": cafe.info,
             "comment": cafe.comment,
             "ig_link": cafe.ig_link,
             "gmap_link": cafe.gmap_link,
             "images_urls": images_urls,
         }
-
         return JsonResponse({"cafe": cafe_info, "success": True}, status=200)
 
     except Cafe.DoesNotExist:
@@ -200,7 +210,7 @@ def filter_cafes_by_labels(request):
 
         if not filtered_cafes:
             return JsonResponse(
-                {"message": "No cafes match the given labels", "success": False}, 
+                {"message": "No cafes match the given labels", "success": False},
                 status=404,
             )
 
@@ -227,9 +237,7 @@ def filter_cafes_by_labels(request):
         )
 
     except Exception as e:
-        return JsonResponse(
-            {"message": str(e), "success": False}, status=500
-        )
+        return JsonResponse({"message": str(e), "success": False}, status=500)
 
 
 @require_http_methods(["GET"])
@@ -296,7 +304,6 @@ def get_top_cafes(request):
                 "name": cafe.name,
                 "rating": cafe.rating,
                 "open_hour": cafe.open_hour,
-                "open_now": cafe.open_now,
                 "distance": user_location.distance_to(
                     LatitudeLongitude(cafe.latitude, cafe.longitude)
                 ),
@@ -313,6 +320,4 @@ def get_top_cafes(request):
         )
 
     except Exception as e:
-        return JsonResponse(
-            {"message": str(e), "success": False}, status=500
-        )
+        return JsonResponse({"message": str(e), "success": False}, status=500)
