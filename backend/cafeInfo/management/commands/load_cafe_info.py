@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 import json
 
-from cafeInfo.models import Cafe, OperatingHours
-from django.utils import timezone
+from cafeInfo.models import Cafe, CafeImage, OperatingHours
+from django.conf import settings
+import os
 
 
 class Command(BaseCommand):
@@ -83,6 +84,18 @@ class Command(BaseCommand):
                                 day_of_week=day,
                                 open_time=open_time,
                                 close_time=close_time,
+                            )
+                        # Clear existing CafeImage and add new ones
+                        CafeImage.objects.filter(cafe=cafe).delete()
+
+                        image_dir = os.path.join(settings.MEDIA_ROOT, "cafe_images")
+                        image_relative_path = os.path.join(
+                            "cafe_images", f"{item['name']}.jpg"
+                        )
+                        image_path = os.path.join(image_dir, f"{item['name']}.jpg")
+                        if os.path.isfile(image_path):
+                            CafeImage.objects.create(
+                                cafe=cafe, image=image_relative_path
                             )
 
                     self.stdout.write(
