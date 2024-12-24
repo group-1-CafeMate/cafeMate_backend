@@ -21,7 +21,7 @@ target_cafes = [
     "Libo cafe",
     "Miracle Coffee",
     "未央咖啡店",
-    "Current Café 此刻咖啡"
+    "Current Café 此刻咖啡",
 ]
 
 # 讀取 places.json 檔案
@@ -41,8 +41,8 @@ for place in places_data["places"]:
         # 店名與 google_reviews
         intro_and_reviews = {
             "name": place["name"],
-            "google_reviews": place.get("google_reviews", [])
-        } 
+            "google_reviews": place.get("google_reviews", []),
+        }
         filtered_places_intro_and_reviews.append(intro_and_reviews)
 
 # 將基本資訊寫入 top_20_places_info.json
@@ -50,7 +50,14 @@ with open("top20_cafes_info.json", "w", encoding="utf-8") as info_file:
     json.dump({"places": filtered_places_info}, info_file, ensure_ascii=False, indent=4)
 
 # 將店名與 google_reviews 寫入 top_20_places_intro_and_reviews.json
-with open("top20_cafes_intro_and_reviews.json", "w", encoding="utf-8") as intro_reviews_file:
-    json.dump(filtered_places_intro_and_reviews, intro_reviews_file, ensure_ascii=False, indent=4)
+with open(
+    "top20_cafes_intro_and_reviews.json", "w", encoding="utf-8"
+) as intro_reviews_file:
+    json.dump(
+        filtered_places_intro_and_reviews,
+        intro_reviews_file,
+        ensure_ascii=False,
+        indent=4,
+    )
 
 print("過濾完成，資料已分別儲存到 top20_cafes_info.json 和 top20_cafes_intro_and_reviews.json")

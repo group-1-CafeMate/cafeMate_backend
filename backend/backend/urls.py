@@ -28,4 +28,9 @@ urlpatterns = [
         cafe_views.filter_cafes_by_labels,
         name="filter_cafes_by_labels",
     ),
+    path(
+        "cafes/top/",
+        cafe_views.get_top_cafes,
+        name="get_top_cafes",
+    ),
 ]
