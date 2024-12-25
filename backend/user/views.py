@@ -1,6 +1,5 @@
-from django.shortcuts import render
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -11,8 +10,6 @@ from django.core.exceptions import ValidationError
 from user.decorators import login_required
 
 from .models import Profile
-
-# from cafeInfo.models import Cafe, CafeImage
 
 # Create your views here.
 
