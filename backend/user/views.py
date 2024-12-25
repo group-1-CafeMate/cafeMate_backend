@@ -16,60 +16,57 @@ import json
 # Create your views here.
 @csrf_exempt
 def sign_up(request):
-    if request.method == "POST":
-        try:
-            if request.content_type == "application/json":
-                try:
-                    data = json.loads(request.body)
-                except json.JSONDecodeError:
-                    return JsonResponse(
-                        {"status": 400, "message": "請求體不是有效的 JSON"}, status=400
-                    )
-                email = data.get("email")
-                username = data.get("username")
-                password = data.get("password")
-            else:
-                email = request.POST.get("email")
-                username = request.POST.get("username")
-                password = request.POST.get("password")
-
-            if not email or not username or not password:
-                return JsonResponse({"status": 400, "message": "缺少必要字段"}, status=400)
-
-            try:
-                validate_password(password)
-            except ValidationError as e:
-                return JsonResponse({"status": 400, "message": e.messages}, status=400)
-
-            encrypted_password = make_password(password)
-
-            # 檢查用戶名和電子郵件是否重複
-            if Profile.objects.filter(email=email).exists():
-                return JsonResponse({"status": 400, "message": "電子郵件已存在"}, status=400)
-            if Profile.objects.filter(username=username).exists():
-                return JsonResponse({"status": 400, "message": "用戶名已存在"}, status=400)
-
-            # 創建新用戶
-            profile = Profile.objects.create(
-                email=email, username=username, password=encrypted_password
-            )
-            profile.save()
-
-            # 返回成功response
-            profile_info = {
-                "uid": profile.uid,
-                "email": profile.email,
-                "username": profile.username,
-                "date": profile.date,
-            }
-            return JsonResponse({"status": 200, "profile": profile_info}, status=200)
-
-        except Exception as e:
-            return JsonResponse(
-                {"status": 500, "message": f"內部錯誤: {str(e)}"}, status=500
-            )
-    else:
+    if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
+    try:
+        if request.content_type == "application/json":
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse(
+                    {"status": 400, "message": "請求體不是有效的 JSON"}, status=400
+                )
+            email = data.get("email")
+            username = data.get("username")
+            password = data.get("password")
+        else:
+            email = request.POST.get("email")
+            username = request.POST.get("username")
+            password = request.POST.get("password")
+
+        if not email or not username or not password:
+            return JsonResponse({"status": 400, "message": "缺少必要字段"}, status=400)
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            return JsonResponse({"status": 400, "message": e.messages}, status=400)
+
+        encrypted_password = make_password(password)
+
+        # 檢查用戶名和電子郵件是否重複
+        if Profile.objects.filter(email=email).exists():
+            return JsonResponse({"status": 400, "message": "電子郵件已存在"}, status=400)
+        if Profile.objects.filter(username=username).exists():
+            return JsonResponse({"status": 400, "message": "用戶名已存在"}, status=400)
+
+        # 創建新用戶
+        profile = Profile.objects.create(
+            email=email, username=username, password=encrypted_password
+        )
+        profile.save()
+
+        # 返回成功response
+        profile_info = {
+            "uid": profile.uid,
+            "email": profile.email,
+            "username": profile.username,
+            "date": profile.date,
+        }
+        return JsonResponse({"status": 200, "profile": profile_info}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"status": 500, "message": f"內部錯誤: {str(e)}"}, status=500)
 
 
 @csrf_exempt
@@ -81,27 +78,26 @@ def login_view(request):
 
         print(username)
         users = Profile.objects.filter(username=username)
-        if users.exists():
-            user = users.first()
-            if user.authenticate(password):
-                request.session["uid"] = str(user.uid)
-                return JsonResponse(
-                    {
-                        "status": 200,
-                        "message": "登入成功",
-                        "success": True,
-                        "uid": user.uid,
-                    },
-                    status=200,
-                )
-            else:
-                return JsonResponse(
-                    {"status": 401, "success": False, "message": "Invalid credentials"},
-                    status=401,
-                )
-        else:
+        if not users.exists():
             return JsonResponse(
                 {"status": 400, "success": False, "message": "用戶不存在"}, status=400
+            )
+        user = users.first()
+        if user.authenticate(password):
+            request.session["uid"] = str(user.uid)
+            return JsonResponse(
+                {
+                    "status": 200,
+                    "message": "登入成功",
+                    "success": True,
+                    "uid": user.uid,
+                },
+                status=200,
+            )
+        else:
+            return JsonResponse(
+                {"status": 401, "success": False, "message": "Invalid credentials"},
+                status=401,
             )
     else:
         return HttpResponseNotAllowed(["POST"])
