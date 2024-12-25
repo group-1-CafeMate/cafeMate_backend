@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from user.decorators import login_required
 
 from .models import Profile
-from cafeInfo import Cafe, CafeImage
+#from cafeInfo.models import Cafe, CafeImage
 from .decorators import login_required
 # Create your views here.
 
@@ -18,24 +18,42 @@ from .decorators import login_required
 def sign_up(request):
     if request.method == 'POST':
         try:
-            email = request.POST["email"]
-            username = request.POST["username"]
-            password = request.POST["password"]
+            if request.content_type == "application/json":
+                import json
+                try:
+                    data = json.loads(request.body)
+                except json.JSONDecodeError:
+                    return JsonResponse({'status': 400, 'message': '請求體不是有效的 JSON'}, status=400)
+                email = data.get("email")
+                username = data.get("username")
+                password = data.get("password")
+            else:
+                email = request.POST.get("email")
+                username = request.POST.get("username")
+                password = request.POST.get("password")
 
-            validate_password(password)  # 驗證密碼是否符合要求
+            if not email or not username or not password:
+                return JsonResponse({'status': 400, 'message': '缺少必要字段'}, status=400)
 
-            encrypted_password = make_password(password)  # 加密密碼
+            try:
+                validate_password(password)
+            except ValidationError as e:
+                return JsonResponse({'status': 400, 'message': e.messages}, status=400)
 
-            # 用戶名和電子郵件不能重複
+            encrypted_password = make_password(password)
+
+            # 檢查用戶名和電子郵件是否重複
             if Profile.objects.filter(email=email).exists():
                 return JsonResponse({'status': 400, 'message': '電子郵件已存在'}, status=400)
             if Profile.objects.filter(username=username).exists():
                 return JsonResponse({'status': 400, 'message': '用戶名已存在'}, status=400)
 
+            # 創建新用戶
             profile = Profile.objects.create(
                 email=email, username=username, password=encrypted_password)
             profile.save()
 
+            # 返回成功response
             profile_info = {
                 'uid': profile.uid,
                 'email': profile.email,
@@ -44,13 +62,11 @@ def sign_up(request):
             }
             return JsonResponse({'status': 200, 'profile': profile_info}, status=200)
 
-        except ValidationError as e:
-            return JsonResponse({'status': 400, 'message': e.messages}, status=400)
-
         except Exception as e:
-            return JsonResponse({'status': 500, 'message': str(e)}, status=500)
+            return JsonResponse({'status': 500, 'message': f'內部錯誤: {str(e)}'}, status=500)
     else:
         return HttpResponseNotAllowed(['POST'])
+
 
 
 @csrf_exempt
@@ -75,39 +91,38 @@ def login_view(request):
 @login_required
 @require_http_methods(["GET"])
 def get_information(request):
-    if request.method == 'GET':
-        userId = request.GET['uid']
-        if not userId:
-            return JsonResponse({'status': 400, 'message': '缺少用戶ID參數'}, status=400)
+    from cafeInfo.models import Cafe, CafeImage  # 避免循環導入問題
 
-        try:
-            user = Profile.objects.get(uid=userId)
-            user_info = {
-                'username': user.username,
-                'email': user.email,
+    user_id = request.GET.get('uid')
+    if not user_id:
+        return JsonResponse({'status': 400, 'message': '缺少用戶ID參數'}, status=400)
+
+    try:
+        user = Profile.objects.get(uid=user_id)
+        user_info = {
+            'username': user.username,
+            'email': user.email,
+        }
+
+        cafes = Cafe.objects.filter(owner=user)  # 假設 Cafe 有 owner 字段
+        cafe_info_list = []
+
+        for cafe in cafes:
+            cafe_images = CafeImage.objects.filter(cafe=cafe)
+            image_urls = [image.image.url for image in cafe_images]
+
+            cafe_info = {
+                'name': cafe.name,
+                'location': cafe.location,
+                'images': image_urls,
             }
-            # cafes = Cafe.objects.filter(owner=user)
-            cafe_info_list = []
-            for cafe in cafes:
+            cafe_info_list.append(cafe_info)
 
-                cafe_images = CafeImage.objects.filter(cafe=cafe)
-                images_urls = [image.image.url for image in cafe_images]
+        user_info['cafes'] = cafe_info_list
+        return JsonResponse({'status': 'success', 'data': user_info}, status=200)
 
-                cafe_info = {
-                    
-                }
-                cafe_info_list.append(cafe_info)
+    except Profile.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '用戶不存在'}, status=404)
 
-            user_info['cafes'] = cafe_info_list
-            return JsonResponse({'status': 'success', 'data': user_info}, status=200)
-        
-        except Profile.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': '用戶不存在'}, status=404)
-
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-    else:
-        # return HttpResponseNotAllowed(['POST'])
-        return JsonResponse({'status': 400, 'success': False, 'message': '只接受GET請求'}, status=400)
-
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
