@@ -76,7 +76,6 @@ def login_view(request):
         username = data.get("username")
         password = data.get("password")
 
-        print(username)
         users = Profile.objects.filter(username=username)
         if not users.exists():
             return JsonResponse(
