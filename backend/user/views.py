@@ -10,17 +10,15 @@ from django.core.exceptions import ValidationError
 from user.decorators import login_required
 
 from .models import Profile
+import json
+
 
 # Create your views here.
-
-
 @csrf_exempt
 def sign_up(request):
     if request.method == "POST":
         try:
             if request.content_type == "application/json":
-                import json
-
                 try:
                     data = json.loads(request.body)
                 except json.JSONDecodeError:
@@ -76,10 +74,12 @@ def sign_up(request):
 
 @csrf_exempt
 def login_view(request):
-    if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
+    if request.method == "POST" and request.content_type == "application/json":
+        data = json.loads(request.body)
+        username = data.get("username")
+        password = data.get("password")
 
+        print(username)
         users = Profile.objects.filter(username=username)
         if users.exists():
             user = users.first()
@@ -110,8 +110,6 @@ def login_view(request):
 @login_required
 @require_http_methods(["GET"])
 def get_information(request):
-    from cafeInfo.models import Cafe, CafeImage  # 避免循環導入問題
-
     user_id = request.GET.get("uid")
     if not user_id:
         return JsonResponse({"status": 400, "message": "缺少用戶ID參數"}, status=400)
