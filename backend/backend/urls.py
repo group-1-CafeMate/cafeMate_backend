@@ -18,10 +18,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from cafeInfo import views as cafe_views
+from user import views as user_views
 from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
+    path("signup/", user_views.sign_up),
+    path("login/", user_views.login_view),
+    path("user/", user_views.get_information),
     path("admin/", admin.site.urls),
     path("cafes/", cafe_views.get_all_cafes, name="get_all_cafes"),
     path("cafe/", cafe_views.get_cafe, name="get_cafe"),
