@@ -1,3 +1,4 @@
+from user.decorators import login_required
 from .models import Cafe, CafeImage, MetroStation
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -25,6 +26,7 @@ def get_open_hour_list(cafe: Cafe):
     ]
 
 
+@login_required
 @require_http_methods(["GET"])
 def get_all_cafes(request):
     try:
@@ -120,6 +122,7 @@ def get_all_cafes(request):
 
 
 # 只有一間不用排序
+@login_required
 @require_http_methods(["GET"])
 def get_cafe(request):
     cafe_id = request.GET.get("cafe_id", None)
@@ -164,6 +167,7 @@ def get_cafe(request):
         return JsonResponse({"message": str(e), "success": False}, status=500)
 
 
+@login_required
 @require_http_methods(["GET"])
 def filter_cafes_by_labels(request):
     filters = {
@@ -251,6 +255,7 @@ def filter_cafes_by_labels(request):
         return JsonResponse({"message": str(e), "success": False}, status=500)
 
 
+@login_required
 @require_http_methods(["GET"])
 def get_top_cafes(request):
     try:
