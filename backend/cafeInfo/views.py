@@ -1,3 +1,4 @@
+from user.decorators import login_required
 from .models import Cafe, CafeImage, MetroStation
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -5,8 +6,27 @@ from .utils import calculate_and_sort_cafes, LatitudeLongitude
 
 
 from django.shortcuts import get_object_or_404
+from django.contrib.sites.shortcuts import get_current_site
 
 
+def generate_image_url(request, relative_path: str) -> str:
+    site_url = f"http://{get_current_site(request).domain}/"
+    return f"{site_url}{relative_path}"
+
+
+def get_open_hour_list(cafe: Cafe):
+    operating_hours = cafe.operating_hours.all()
+    return [
+        {
+            "day_of_week": hour.day_of_week,
+            "open_time": hour.open_time,
+            "close_time": hour.close_time,
+        }
+        for hour in operating_hours
+    ]
+
+
+@login_required
 @require_http_methods(["GET"])
 def get_all_cafes(request):
     try:
@@ -57,7 +77,6 @@ def get_all_cafes(request):
             )
 
         cafes = Cafe.objects.filter(legal=True)
-
         if not cafes.exists():
             return JsonResponse(
                 {"message": "No cafes found", "success": False}, status=404
@@ -69,22 +88,23 @@ def get_all_cafes(request):
         # 格式化為包含所需資訊的列表
         cafe_info = []
         for distance, cafe in cafes_with_distance:
-            images_urls = [img.image.url for img in cafe.images.all()]  # 提取所有圖片 URL
+            images_urls = [
+                generate_image_url(request, img.image.url) for img in cafe.images.all()
+            ]  # 提取所有圖片 URL
+            open_hour_list = get_open_hour_list(cafe)
             cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
                     "name": cafe.name,
                     "phone": cafe.phone,
                     "addr": cafe.addr,
-                    "quiet": cafe.quiet,
-                    "grade": cafe.grade,
+                    "work_and_study_friendly": cafe.work_and_study_friendly,
+                    "rating": cafe.rating,
                     "time_unlimit": cafe.time_unlimit,
-                    "time_limit": cafe.time_limit,
                     "socket": cafe.socket,
                     "pets_allowed": cafe.pets_allowed,
                     "wiFi": cafe.wiFi,
-                    "open_hour": cafe.open_hour,
-                    "open_now": cafe.open_now,
+                    "open_hour": open_hour_list,
                     "distance": distance,
                     "info": cafe.info,
                     "comment": cafe.comment,
@@ -102,6 +122,7 @@ def get_all_cafes(request):
 
 
 # 只有一間不用排序
+@login_required
 @require_http_methods(["GET"])
 def get_cafe(request):
     cafe_id = request.GET.get("cafe_id", None)
@@ -114,28 +135,29 @@ def get_cafe(request):
     try:
         cafe = Cafe.objects.get(cafe_id=cafe_id)
         cafe_images = CafeImage.objects.filter(cafe=cafe)
-        images_urls = [image.image.url for image in cafe_images]
+        images_urls = [
+            generate_image_url(request, image.image.url) for image in cafe_images
+        ]
 
+        open_hour_list = get_open_hour_list(cafe)
         cafe_info = {
             "cafe_id": str(cafe.cafe_id),
             "name": cafe.name,
             "phone": cafe.phone,
             "addr": cafe.addr,
-            "quiet": cafe.quiet,
-            "grade": cafe.grade,
+            "work_and_study_friendly": cafe.work_and_study_friendly,
+            "rating": cafe.rating,
             "time_unlimit": cafe.time_unlimit,
-            "time_limit": cafe.time_limit,
             "socket": cafe.socket,
             "pets_allowed": cafe.pets_allowed,
             "wiFi": cafe.wiFi,
-            "open_hour": cafe.open_hour,
-            "open_now": cafe.open_now,
+            "open_hour": open_hour_list,
             "info": cafe.info,
             "comment": cafe.comment,
             "ig_link": cafe.ig_link,
+            "gmap_link": cafe.gmap_link,
             "images_urls": images_urls,
         }
-
         return JsonResponse({"cafe": cafe_info, "success": True}, status=200)
 
     except Cafe.DoesNotExist:
@@ -145,11 +167,18 @@ def get_cafe(request):
         return JsonResponse({"message": str(e), "success": False}, status=500)
 
 
+@login_required
 @require_http_methods(["GET"])
 def filter_cafes_by_labels(request):
-    labels = request.GET.getlist(
-        "labels"
-    )  # Expecting a list of labels from the query parameters
+    filters = {
+        "work_and_study_friendly": request.GET.get("work_and_study_friendly"),
+        "socket": request.GET.get("socket"),
+        "time_unlimit": request.GET.get("time_unlimit"),
+        "wiFi": request.GET.get("wifi"),
+        "pets_allowed": request.GET.get("pets_allowed"),
+    }
+
+    filters = {key: True for key, value in filters.items() if value == "true"}
 
     # 先檢查是否有傳入 metro_station_id
     metro_station_id = request.GET.get("metro_station_id")
@@ -192,33 +221,28 @@ def filter_cafes_by_labels(request):
             status=400,
         )
     try:
-        cafes = Cafe.objects.filter(legal=True)
-        filtered_cafes = [
-            cafe
-            for cafe in cafes
-            if any(label in cafe.get_labels() for label in labels)
-        ]
-
-        if not filtered_cafes:
+        cafes = Cafe.objects.filter(legal=True, **filters)
+        if not cafes:
             return JsonResponse(
                 {"message": "No cafes match the given labels", "success": False},
                 status=404,
             )
-
-        cafes_with_distance = calculate_and_sort_cafes(filtered_cafes, user_location)
+        cafes_with_distance = calculate_and_sort_cafes(cafes, user_location)
         partial_cafe_info = []
         for distance, cafe in cafes_with_distance:
+            open_hour_list = get_open_hour_list(cafe)
             partial_cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
                     "name": cafe.name,
-                    "grade": cafe.grade,
-                    "open_hour": cafe.open_hour,
-                    "open_now": cafe.open_now,
+                    "rating": cafe.rating,
+                    "open_hour": open_hour_list,
                     "distance": distance,
                     "labels": cafe.get_labels(),
                     "image_url": (
-                        cafe.images.all()[0].image.url if cafe.images.exists() else None
+                        generate_image_url(request, cafe.images.all()[0].image.url)
+                        if cafe.images.exists()
+                        else None
                     ),
                 }
             )
@@ -231,6 +255,7 @@ def filter_cafes_by_labels(request):
         return JsonResponse({"message": str(e), "success": False}, status=500)
 
 
+@login_required
 @require_http_methods(["GET"])
 def get_top_cafes(request):
     try:
@@ -272,6 +297,7 @@ def get_top_cafes(request):
             user_lat = float(user_lat)
             user_lon = float(user_lon)
             user_location = LatitudeLongitude(user_lat, user_lon)
+
         except ValueError as e:
             return JsonResponse(
                 {
@@ -292,14 +318,13 @@ def get_top_cafes(request):
             {
                 "cafe_id": str(cafe.cafe_id),
                 "name": cafe.name,
-                "grade": cafe.grade,
-                "open_hour": cafe.open_hour,
-                "open_now": cafe.open_now,
+                "rating": cafe.rating,
+                "open_hour": get_open_hour_list(cafe),
                 "distance": user_location.distance_to(
                     LatitudeLongitude(cafe.latitude, cafe.longitude)
                 ),
                 "labels": cafe.get_labels(),
-                "image_url": cafe.images.all()[0].image.url
+                "image_url": generate_image_url(request, cafe.images.all()[0].image.url)
                 if cafe.images.exists()
                 else None,
             }

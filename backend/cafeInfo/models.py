@@ -2,8 +2,6 @@ from django.db import models
 from django.utils import timezone
 import uuid
 
-# Create your models here.
-
 
 class Cafe(models.Model):
     cafe_id = models.UUIDField(
@@ -12,29 +10,29 @@ class Cafe(models.Model):
     name = models.CharField(max_length=50)
     phone = models.CharField(max_length=50)
     addr = models.CharField(max_length=100)
-    quiet = models.BooleanField()  # true: 適合讀書，false: 適合工作、交談
-    grade = models.CharField(max_length=10)
-    time_unlimit = models.BooleanField()
-    time_limit = models.CharField(max_length=20)  # 限時幾小時
-    socket = models.BooleanField(blank=True, null=True)
-    pets_allowed = models.BooleanField()  # True: 寵物咖啡廳
-    wiFi = models.BooleanField()
-    open_hour = models.CharField(max_length=10)
-    open_now = models.BooleanField()
+    rating = models.FloatField()
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)
     info = models.TextField()
     comment = models.TextField()
-    ig_link = models.CharField(max_length=400, blank=True, null=True)
+    ig_link = models.CharField(max_length=500, blank=True, null=True)
+    gmap_link = models.CharField(max_length=500, blank=True, null=True)
     post_date = models.DateTimeField(default=timezone.now)
     ig_post_cnt = models.IntegerField()
+    # labels
+    time_unlimit = models.BooleanField()
+    socket = models.BooleanField(blank=True, null=True)
+    pets_allowed = models.BooleanField()  # True: 寵物咖啡廳
+    work_and_study_friendly = models.BooleanField()  # true: 適合讀書或工作
+    wiFi = models.BooleanField()
+    # 不回給前端
+    legal = models.BooleanField(blank=True, default=True)
 
-    # -------------- 以下不用顯示於前端 --------------
-    legal = models.BooleanField(blank=True, null=True)
+    def __str__(self):
+        return f"{self.name}"
 
     def get_labels(self):
         label_list = []
-        label_list.append("適合讀書" if self.quiet else "適合工作及交談")
         if self.time_unlimit:
             label_list.append("不限時")
         if self.socket:
@@ -43,8 +41,24 @@ class Cafe(models.Model):
             label_list.append("寵物咖啡廳")
         if self.wiFi:
             label_list.append("WiFi")
-
+        if self.work_and_study_friendly:
+            label_list.append("適合讀書或工作")
         return label_list
+
+
+class OperatingHours(models.Model):
+    cafe = models.ForeignKey(
+        Cafe, on_delete=models.CASCADE, related_name="operating_hours"
+    )
+    day_of_week = models.CharField(max_length=10)
+    open_time = models.CharField(max_length=25)
+    close_time = models.CharField(max_length=25)
+
+    class Meta:
+        unique_together = ("cafe", "day_of_week")  # 確保每個咖啡廳的營業日唯一
+
+    def __str__(self):
+        return f"{self.cafe.name} - {self.day_of_week}: {self.open_time} to {self.close_time}"
 
 
 class CafeImage(models.Model):
