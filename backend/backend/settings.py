@@ -44,9 +44,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # our apps
     "cafeInfo",
-    "crawler",
-    "filter",
-    "recommendSystem",
     "user",
 ]
 
