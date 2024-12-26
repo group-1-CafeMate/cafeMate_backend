@@ -24,7 +24,7 @@ def sign_up(request):
                 data = json.loads(request.body)
             except json.JSONDecodeError:
                 return JsonResponse(
-                    {"status": 400, "message": "請求體不是有效的 JSON"}, status=400
+                    {"status": 400, "message": "請求不是有效的 JSON"}, status=400
                 )
             email = data.get("email")
             username = data.get("username")
