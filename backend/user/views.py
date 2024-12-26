@@ -102,6 +102,13 @@ def login_view(request):
         return HttpResponseNotAllowed(["POST"])
 
 
+@csrf_exempt
+def logout_view(request):
+    if "uid" in request.session:
+        del request.session["uid"]
+    return JsonResponse({"status": 200, "message": "已成功登出"}, status=200)
+
+
 @login_required
 @require_http_methods(["GET"])
 def get_information(request):
