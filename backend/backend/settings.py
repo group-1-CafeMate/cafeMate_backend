@@ -42,15 +42,17 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     # our apps
     "cafeInfo",
     "user",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware", # CorsMiddleware 必須在 CommonMiddleware 之前
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
+    "django.middleware.common.CommonMiddleware", 
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -73,6 +75,24 @@ TEMPLATES = [
             ],
         },
     },
+]
+
+
+# 允許的 CORS 設定
+CORS_ALLOW_ALL_ORIGINS = True  # 開放所有跨域請求（生產環境建議改為特定域名）
+CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
+CORS_ALLOW_HEADERS = ["Content-Type"]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+]
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = None
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://localhost:3000",
 ]
 
 WSGI_APPLICATION = "backend.wsgi.application"
@@ -101,17 +121,6 @@ DATABASES = {
 #         }
 #     }
 # }
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
-CORS_ALLOW_CREDENTIALS = True
-CSRF_COOKIE_SECURE = None
-
-# CSRF settings
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
