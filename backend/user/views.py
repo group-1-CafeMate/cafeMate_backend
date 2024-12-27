@@ -140,9 +140,9 @@ def get_information(request):
 
 @csrf_exempt
 def check(request, token):  # 信箱驗證
-    if request.method == "POST":
+    if request.method == "POST" and request.content_type == "application/json":
         try:
-            data = json.loads(bytes.decode(request.body, "utf-8"))
+            data = json.loads(request.body)
             token_use = email_token()
             email = token_use.confirm_token(token)  # 確認 token 並獲取 email
 
@@ -150,10 +150,8 @@ def check(request, token):  # 信箱驗證
                 return JsonResponse(
                     {"status": "1", "message": "Invalid token"}, status=400
                 )
-            print("Email:" + email)
 
             user = Profile.objects.get(email=email)
-            user.is_active = True  # 將用戶設置為活躍狀態
             user.save()
             message = {"status": "0", "message": "Email verified successfully"}
         except Profile.DoesNotExist:

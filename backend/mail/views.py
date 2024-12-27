@@ -6,11 +6,11 @@ from .tasks import email_token, send_custom_email
 
 @csrf_exempt
 def send_email_view(request):
-    if request.method == "POST":  # Handle POST requests
+    if request.method == "POST" and request.content_type == "application/json":
         try:
-            data = json.loads(bytes.decode(request.body, "utf-8"))
-            email = data["email"]
-            name = data["name"]  # Assuming the name is also provided in the request
+            data = json.loads(request.body)
+            email = data.get("email")
+            name = data.get("name")
             token = email_token()
             token_s = token.generate_token(email)
             print("Email:", email)
@@ -22,3 +22,7 @@ def send_email_view(request):
             message = {"status": "1", "message": "Error sending email"}
 
         return JsonResponse(message)
+    else:
+        return JsonResponse(
+            {"status": "1", "message": "Invalid request method or content type"}
+        )
