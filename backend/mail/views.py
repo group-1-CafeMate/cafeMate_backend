@@ -1,30 +1,22 @@
-from .tasks import send_custom_email
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import json
+from .tasks import send_custom_email
 
 
 @csrf_exempt
 def send_email_view(request):
-    if request.method == "GET":  # 改為處理 GET 請求
+    if request.method == "POST":  # Handle POST requests
         try:
-            email = request.GET.get("email")  # 取得查詢字串中的 email
-            name = request.GET.get("name")  # 取得查詢字串中的 name
-            print("email: ", email)
-            print("name: ", name)
-
-            if not email or not name:
-                return JsonResponse(
-                    {"status": 400, "message": "Missing email or name in the request."},
-                    status=400,
-                )
-
-            send_custom_email(email, name)
-            return JsonResponse({"status": 200, "message": "Email sent successfully!"})
+            data = json.loads(bytes.decode(request.body, "utf-8"))
+            email = data["email"]
+            name = data["name"]  # Assuming the name is also provided in the request
+            print("Email:", email)
+            print("Name:", name)
+            send_custom_email(email, name)  # Call the task to send the email
+            message = {"status": "0", "message": "Email sent successfully"}
         except Exception as e:
-            return JsonResponse(
-                {"status": 500, "message": f"Error occurred: {str(e)}"}, status=500
-            )
-    else:
-        return JsonResponse(
-            {"status": 405, "message": "Only GET requests are allowed."}, status=405
-        )
+            print(e)
+            message = {"status": "1", "message": "Error sending email"}
+
+        return JsonResponse(message)
