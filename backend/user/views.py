@@ -44,8 +44,6 @@ def sign_up(request):
             return JsonResponse({"status": 400, "message": e.messages}, status=400)
 
         encrypted_password = make_password(password)
-        print(f"加密後的密碼: {encrypted_password}")
-        print(f"長度: {len(encrypted_password)}")
 
         # 檢查用戶名和電子郵件是否重複
         if Profile.objects.filter(email=email).exists():
@@ -57,7 +55,10 @@ def sign_up(request):
 
         # 創建新用戶
         profile = Profile.objects.create(
-            email=email, username=username, password=encrypted_password
+            email=email,
+            username=username,
+            password=encrypted_password,
+            email_verified=False,
         )
         profile.save()
 
@@ -89,6 +90,11 @@ def login_view(request):
                 {"status": 400, "success": False, "message": "用戶不存在"}, status=400
             )
         user = users.first()
+        if not user.email_verified:
+            return JsonResponse(
+                {"status": 400, "success": False, "message": "未驗證的電子郵件"},
+                status=400,
+            )
         if user.authenticate(password):
             request.session["uid"] = str(user.uid)
             return JsonResponse(
@@ -152,6 +158,8 @@ def check(request, token):  # 信箱驗證
                 )
 
             user = Profile.objects.get(email=email)
+            # 更新用戶的 email_verified 狀態
+            user.email_verified = True
             user.save()
             message = {"status": "0", "message": "Email verified successfully"}
         except Profile.DoesNotExist:

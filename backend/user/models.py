@@ -13,6 +13,7 @@ class Profile(models.Model):
         primary_key=True, default=uuid.uuid4, editable=False, unique=True
     )
     email = models.EmailField(max_length=50, null=False, blank=True)
+    email_verified = models.BooleanField(default=False)  # 記錄電子郵箱是否被驗證
     username = models.CharField(max_length=20, null=False, blank=True)
     password = models.CharField(max_length=220, null=False, blank=True)
     date = models.DateTimeField(default=timezone.now)
