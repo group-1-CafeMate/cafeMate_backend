@@ -49,10 +49,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware", # CorsMiddleware 必須在 CommonMiddleware 之前
+    "corsheaders.middleware.CorsMiddleware",  # CorsMiddleware 必須在 CommonMiddleware 之前
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware", 
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -96,6 +96,17 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 WSGI_APPLICATION = "backend.wsgi.application"
+
+# Google Gmail service
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587  # TLS 通訊埠號
+EMAIL_USE_TLS = True  # 開啟TLS(傳輸層安全性)
+# 寄件人的信箱的帳號
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# 寄件人的信箱的應用程式密碼
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 # Database
