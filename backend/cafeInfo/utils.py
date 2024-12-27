@@ -44,7 +44,7 @@ class LatitudeLongitude:
 
 
 def calculate_and_sort_cafes(
-    cafes: List[Cafe], user_location: LatitudeLongitude
+    cafes: List[Cafe], user_location: LatitudeLongitude | None
 ) -> List[Tuple[float, Cafe]]:
     """
     計算每個 Cafe 與用戶的距離並依距離排序。
@@ -54,6 +54,8 @@ def calculate_and_sort_cafes(
     :param user_lon: 用戶當前的經度。
     :return: 包含距離和 Cafe 的列表，依距離排序。
     """
+    if user_location is None:
+        return [(-1, c) for c in cafes]
     try:
         # 計算每個 Cafe 的距離
         cafes_with_distances = []
