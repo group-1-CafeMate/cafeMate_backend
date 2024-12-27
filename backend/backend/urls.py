@@ -41,4 +41,5 @@ urlpatterns = [
         name="get_top_cafes",
     ),
     path("user/email/", mail_views.send_email_view),
+    path("user/check/<str:token>", user_views.check),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

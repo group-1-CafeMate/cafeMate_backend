@@ -11,6 +11,7 @@ from user.decorators import login_required
 
 from .models import Profile
 import json
+from mail.tasks import email_token
 
 
 # Create your views here.
@@ -43,10 +44,14 @@ def sign_up(request):
             return JsonResponse({"status": 400, "message": e.messages}, status=400)
 
         encrypted_password = make_password(password)
+        print(f"加密後的密碼: {encrypted_password}")
+        print(f"長度: {len(encrypted_password)}")
 
         # 檢查用戶名和電子郵件是否重複
         if Profile.objects.filter(email=email).exists():
-            return JsonResponse({"status": 400, "message": "電子郵件已存在"}, status=400)
+            return JsonResponse(
+                {"status": 400, "message": "電子郵件已存在"}, status=400
+            )
         if Profile.objects.filter(username=username).exists():
             return JsonResponse({"status": 400, "message": "用戶名已存在"}, status=400)
 
@@ -66,7 +71,9 @@ def sign_up(request):
         return JsonResponse({"status": 200, "profile": profile_info}, status=200)
 
     except Exception as e:
-        return JsonResponse({"status": 500, "message": f"內部錯誤: {str(e)}"}, status=500)
+        return JsonResponse(
+            {"status": 500, "message": f"內部錯誤: {str(e)}"}, status=500
+        )
 
 
 @csrf_exempt
@@ -129,3 +136,30 @@ def get_information(request):
 
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@csrf_exempt
+def check(request, token):  # 信箱驗證
+    if request.method == "POST":
+        try:
+            data = json.loads(bytes.decode(request.body, "utf-8"))
+            token_use = email_token()
+            email = token_use.confirm_token(token)  # 確認 token 並獲取 email
+
+            if email is None:
+                return JsonResponse(
+                    {"status": "1", "message": "Invalid token"}, status=400
+                )
+            print("Email:" + email)
+
+            user = Profile.objects.get(email=email)
+            user.is_active = True  # 將用戶設置為活躍狀態
+            user.save()
+            message = {"status": "0", "message": "Email verified successfully"}
+        except Profile.DoesNotExist:
+            message = {"status": "1", "message": "User not found"}
+        except Exception as e:
+            print(e)
+            message = {"status": "1", "message": "Error occurred during verification"}
+
+        return JsonResponse(message)

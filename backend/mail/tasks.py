@@ -4,7 +4,7 @@ import base64
 from django.core import signing
 
 
-def send_custom_email(email, name):
+def send_custom_email(email, name, token_s):
     subject = f"Welcome, {name}!"
     plain_message = f"Hi {name},\nThank you for joining us!"
     html_message = f"""
@@ -21,9 +21,7 @@ def send_custom_email(email, name):
     """
 
     # Generate token for email verification
-    token = email_token()
-    token_s = token.generate_token(email)
-    verification_url = f"/user/check/{token_s}"
+    verification_url = f"http://127.0.0.1:8000/user/check/{token_s}"
     verification_message = f"""
     <html>
         <body>
@@ -43,7 +41,7 @@ def send_custom_email(email, name):
     try:
         email_message = EmailMessage(
             subject="Account Verification",
-            body=html_message,
+            body=verification_message,
             from_email=from_email,
             to=recipient_list,
         )
@@ -55,15 +53,15 @@ def send_custom_email(email, name):
 
 
 class email_token:
-    def generate_token(self, email):
-        signer = signing.TimestampSigner()
-        return signer.sign(email)
+    def generate_token(self, email):  # 加密簽名
+        signer = signing.TimestampSigner().sign_object(email)
+        return signer
 
     def confirm_token(self, token):
         try:
-            email = signing.TimestampSigner(salt=self.salt).unsign(
-                token, max_age=3600
-            )  # Optional max_age parameter for expiration
+            email = signing.TimestampSigner().unsign_object(
+                token
+            )  # 解密簽名，獲取 email
             return email
         except signing.BadSignature:
             return None

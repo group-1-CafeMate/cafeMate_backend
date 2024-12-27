@@ -14,7 +14,7 @@ class Profile(models.Model):
     )
     email = models.EmailField(max_length=50, null=False, blank=True)
     username = models.CharField(max_length=20, null=False, blank=True)
-    password = models.CharField(max_length=120, null=False, blank=True)
+    password = models.CharField(max_length=220, null=False, blank=True)
     date = models.DateTimeField(default=timezone.now)
 
     def authenticate(self, password):
