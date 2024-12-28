@@ -77,27 +77,25 @@ TEMPLATES = [
     },
 ]
 
-# CORS settings
+
+# 允許的 CORS 設定
 CORS_ALLOW_ALL_ORIGINS = True  # 開放所有跨域請求（生產環境建議改為特定域名）
-CORS_ALLOW_CREDENTIALS = True  # 確保允許傳遞 Cookie
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
-CORS_ALLOW_HEADERS = ("*",)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://localhost:3000",
-]
+CORS_ALLOW_HEADERS = ("*", "content-type")
 
-# SESSION settings
-SESSION_COOKIE_HTTPONLY = False # 是否禁止 JavaScript 訪問 CSRF Cookie，開發環境可設為 False
-SESSION_COOKIE_SECURE = True    # Cookie 只能透過 HTTPS 傳輸 
-SESSION_COOKIE_SAMESITE = "None" # None: Cookie 可以跨站使用，Strict: 只有同一個站點可使用該 Cookie，Lax: 允許部分跨站請求(從其他站點點擊連結訪問時傳遞 Cookie)
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:8000",
+#     "http://localhost:3000",
+# ]
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = None
 
+SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_PARTITIONED = True
 
 # CSRF settings
-# CSRF_COOKIE_SECURE = False # 若為 True，只允許 HTTPS 傳送 CSRF Token
-# CSRF_COOKIE_HTTPONLY = False  # 是否禁止 JavaScript 訪問 CSRF Token，開發環境可設為 False
-# CSRF_USE_SESSIONS = False  # 將 CSRF 存在 Cookie 中而非 Session
-CSRF_COOKIE_SECURE = None
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:3000",
@@ -105,16 +103,6 @@ CSRF_TRUSTED_ORIGINS = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-# Google Gmail service
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587  # TLS 通訊埠號
-EMAIL_USE_TLS = True  # 開啟TLS(傳輸層安全性)
-# 寄件人的信箱的帳號
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-# 寄件人的信箱的應用程式密碼
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -158,7 +146,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+# Google Gmail service
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587  # TLS 通訊埠號
+EMAIL_USE_TLS = True  # 開啟TLS(傳輸層安全性)
+# 寄件人的信箱的帳號
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# 寄件人的信箱的應用程式密碼
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
