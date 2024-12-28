@@ -81,13 +81,18 @@ TEMPLATES = [
 # 允許的 CORS 設定
 CORS_ALLOW_ALL_ORIGINS = True  # 開放所有跨域請求（生產環境建議改為特定域名）
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
-CORS_ALLOW_HEADERS = ["Content-Type"]
+CORS_ALLOW_HEADERS = ("*",)
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
+    "http://localhost:3000",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_SECURE = None
+
+SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "None"
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
