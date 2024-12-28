@@ -6,8 +6,8 @@ from .utils import calculate_and_sort_cafes, LatitudeLongitude, generate_image_u
 
 
 from django.shortcuts import get_object_or_404
-from django.contrib.sites.shortcuts import get_current_site
 from django.middleware.csrf import CsrfViewMiddleware
+
 
 def debug_csrf_token(request):
     csrf_header = request.META.get("HTTP_X_CSRFTOKEN")
@@ -23,22 +23,6 @@ def debug_csrf_token(request):
     except Exception as e:
         print("CSRF Validation Error:", e)
         return JsonResponse({"error": "CSRF validation failed"}, status=403)
-
-def generate_image_url(request, relative_path: str) -> str:
-    site_url = f"http://{get_current_site(request).domain}/"
-    return f"{site_url}{relative_path}"
-
-
-def get_open_hour_list(cafe: Cafe):
-    operating_hours = cafe.operating_hours.all()
-    return [
-        {
-            "day_of_week": hour.day_of_week,
-            "open_time": hour.open_time,
-            "close_time": hour.close_time,
-        }
-        for hour in operating_hours
-    ]
 
 
 @login_required
