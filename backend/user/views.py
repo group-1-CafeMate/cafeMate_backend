@@ -169,3 +169,65 @@ def check(request, token):  # 信箱驗證
             message = {"status": "1", "message": "Error occurred during verification"}
 
         return JsonResponse(message)
+
+
+# 重設密碼
+@csrf_exempt
+def reset_password(request):
+    if request.method == "POST" and request.content_type == "application/json":
+        try:
+            # 確認用戶是否已登入
+            if "uid" not in request.session:
+                return JsonResponse(
+                    {"status": 401, "message": "未登入，無法重設密碼"}, status=401
+                )
+
+            data = json.loads(request.body)
+            uid = request.session["uid"]
+            old_password = data.get("old_password")
+            new_password = data.get("new_password")
+
+            # 檢查必要字段
+            if not old_password or not new_password:
+                return JsonResponse(
+                    {"status": 400, "message": "缺少必要字段"}, status=400
+                )
+
+            # 獲取用戶
+            try:
+                user = Profile.objects.get(uid=uid)
+            except Profile.DoesNotExist:
+                return JsonResponse(
+                    {"status": 404, "message": "用戶不存在"}, status=404
+                )
+
+            # 驗證舊密碼是否正確
+            if not user.authenticate(old_password):
+                return JsonResponse(
+                    {"status": 400, "message": "舊密碼不正確"}, status=400
+                )
+
+            # 驗證新密碼是否符合規範
+            try:
+                validate_password(new_password)
+            except ValidationError as e:
+                return JsonResponse({"status": 400, "message": e.messages}, status=400)
+
+            # 更新密碼
+            user.password = make_password(new_password)
+            user.save()
+
+            return JsonResponse(
+                {"status": 200, "message": "密碼已成功重設"}, status=200
+            )
+
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"status": 400, "message": "請求不是有效的 JSON"}, status=400
+            )
+        except Exception as e:
+            return JsonResponse(
+                {"status": 500, "message": f"內部錯誤: {str(e)}"}, status=500
+            )
+    else:
+        return HttpResponseNotAllowed(["POST"])

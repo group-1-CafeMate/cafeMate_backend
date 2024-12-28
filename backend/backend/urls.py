@@ -43,4 +43,5 @@ urlpatterns = [
     path("user/email/", mail_views.send_email_view),
     path("user/check/<str:token>", user_views.check),
     path("pw/forgot", mail_views.forgot),
+    path("pw/reset", user_views.reset_password),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
