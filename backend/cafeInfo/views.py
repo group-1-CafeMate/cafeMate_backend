@@ -320,3 +320,9 @@ def get_top_cafes(request):
 
     except Exception as e:
         return JsonResponse({"message": str(e), "success": False}, status=500)
+
+
+@require_http_methods(["GET"])
+def get_all_metro_stations(request):
+    metro_stations = MetroStation.objects.all().values("metro_station_id", "name")
+    return JsonResponse(list(metro_stations), safe=False)
