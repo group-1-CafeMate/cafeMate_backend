@@ -78,25 +78,32 @@ TEMPLATES = [
 ]
 
 
-# 允許的 CORS 設定
+# CORS settings
 CORS_ALLOW_ALL_ORIGINS = True  # 開放所有跨域請求（生產環境建議改為特定域名）
+CORS_ALLOW_CREDENTIALS = True  # 確保允許傳遞 Cookie
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
-CORS_ALLOW_HEADERS = ["Content-Type"]
-
+CORS_ALLOW_HEADERS = ("*",)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
+    "http://localhost:3000",
 ]
-CORS_ALLOW_CREDENTIALS = True
-CSRF_COOKIE_SECURE = None
 
 # CSRF settings
+# CSRF_COOKIE_SECURE = False # 若為 True，只允許 HTTPS 傳送 CSRF Token
+# CSRF_COOKIE_HTTPONLY = False  # 是否禁止 JavaScript 訪問 CSRF Token，開發環境可設為 False
+# CSRF_USE_SESSIONS = False  # 將 CSRF 存在 Cookie 中而非 Session
+CSRF_COOKIE_SECURE = None
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:3000",
 ]
 
-WSGI_APPLICATION = "backend.wsgi.application"
+# SESSION settings
+SESSION_COOKIE_HTTPONLY = False # 是否禁止 JavaScript 訪問 CSRF Cookie，開發環境可設為 False
+SESSION_COOKIE_SECURE = True    # Cookie 只能透過 HTTPS 傳輸 
+SESSION_COOKIE_SAMESITE = "None" # None: Cookie 可以跨站使用，Strict: 只有同一個站點可使用該 Cookie，Lax: 允許部分跨站請求(從其他站點點擊連結訪問時傳遞 Cookie)
 
+WSGI_APPLICATION = "backend.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
