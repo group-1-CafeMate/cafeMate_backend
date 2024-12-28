@@ -11,6 +11,7 @@ from user.decorators import login_required
 
 from .models import Profile
 import json
+from mail.tasks import email_token
 
 
 # Create your views here.
@@ -46,13 +47,18 @@ def sign_up(request):
 
         # 檢查用戶名和電子郵件是否重複
         if Profile.objects.filter(email=email).exists():
-            return JsonResponse({"status": 400, "message": "電子郵件已存在"}, status=400)
+            return JsonResponse(
+                {"status": 400, "message": "電子郵件已存在"}, status=400
+            )
         if Profile.objects.filter(username=username).exists():
             return JsonResponse({"status": 400, "message": "用戶名已存在"}, status=400)
 
         # 創建新用戶
         profile = Profile.objects.create(
-            email=email, username=username, password=encrypted_password
+            email=email,
+            username=username,
+            password=encrypted_password,
+            email_verified=False,
         )
         profile.save()
 
@@ -66,7 +72,9 @@ def sign_up(request):
         return JsonResponse({"status": 200, "profile": profile_info}, status=200)
 
     except Exception as e:
-        return JsonResponse({"status": 500, "message": f"內部錯誤: {str(e)}"}, status=500)
+        return JsonResponse(
+            {"status": 500, "message": f"內部錯誤: {str(e)}"}, status=500
+        )
 
 
 @csrf_exempt
@@ -82,6 +90,11 @@ def login_view(request):
                 {"status": 400, "success": False, "message": "用戶不存在"}, status=400
             )
         user = users.first()
+        if not user.email_verified:
+            return JsonResponse(
+                {"status": 400, "success": False, "message": "未驗證的電子郵件"},
+                status=400,
+            )
         if user.authenticate(password):
             request.session["uid"] = str(user.uid)
             return JsonResponse(
@@ -129,3 +142,92 @@ def get_information(request):
 
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@csrf_exempt
+def check(request, token):  # 信箱驗證
+    if request.method == "POST" and request.content_type == "application/json":
+        try:
+            data = json.loads(request.body)
+            token_use = email_token()
+            email = token_use.confirm_token(token)  # 確認 token 並獲取 email
+
+            if email is None:
+                return JsonResponse(
+                    {"status": "1", "message": "Invalid token"}, status=400
+                )
+
+            user = Profile.objects.get(email=email)
+            # 更新用戶的 email_verified 狀態
+            user.email_verified = True
+            user.save()
+            message = {"status": "0", "message": "Email verified successfully"}
+        except Profile.DoesNotExist:
+            message = {"status": "1", "message": "User not found"}
+        except Exception as e:
+            print(e)
+            message = {"status": "1", "message": "Error occurred during verification"}
+
+        return JsonResponse(message)
+
+
+# 重設密碼
+@csrf_exempt
+def reset_password(request):
+    if request.method == "POST" and request.content_type == "application/json":
+        try:
+            # 確認用戶是否已登入
+            if "uid" not in request.session:
+                return JsonResponse(
+                    {"status": 401, "message": "未登入，無法重設密碼"}, status=401
+                )
+
+            data = json.loads(request.body)
+            uid = request.session["uid"]
+            old_password = data.get("old_password")
+            new_password = data.get("new_password")
+
+            # 檢查必要字段
+            if not old_password or not new_password:
+                return JsonResponse(
+                    {"status": 400, "message": "缺少必要字段"}, status=400
+                )
+
+            # 獲取用戶
+            try:
+                user = Profile.objects.get(uid=uid)
+            except Profile.DoesNotExist:
+                return JsonResponse(
+                    {"status": 404, "message": "用戶不存在"}, status=404
+                )
+
+            # 驗證舊密碼是否正確
+            if not user.authenticate(old_password):
+                return JsonResponse(
+                    {"status": 400, "message": "舊密碼不正確"}, status=400
+                )
+
+            # 驗證新密碼是否符合規範
+            try:
+                validate_password(new_password)
+            except ValidationError as e:
+                return JsonResponse({"status": 400, "message": e.messages}, status=400)
+
+            # 更新密碼
+            user.password = make_password(new_password)
+            user.save()
+
+            return JsonResponse(
+                {"status": 200, "message": "密碼已成功重設"}, status=200
+            )
+
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"status": 400, "message": "請求不是有效的 JSON"}, status=400
+            )
+        except Exception as e:
+            return JsonResponse(
+                {"status": 500, "message": f"內部錯誤: {str(e)}"}, status=500
+            )
+    else:
+        return HttpResponseNotAllowed(["POST"])

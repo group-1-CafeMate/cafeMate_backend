@@ -102,6 +102,17 @@ CSRF_TRUSTED_ORIGINS = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
+# Google Gmail service
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587  # TLS 通訊埠號
+EMAIL_USE_TLS = True  # 開啟TLS(傳輸層安全性)
+# 寄件人的信箱的帳號
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# 寄件人的信箱的應用程式密碼
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
