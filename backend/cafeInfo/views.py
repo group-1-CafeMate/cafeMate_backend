@@ -2,28 +2,10 @@ from user.decorators import login_required
 from .models import Cafe, CafeImage, MetroStation
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .utils import calculate_and_sort_cafes, LatitudeLongitude
+from .utils import calculate_and_sort_cafes, LatitudeLongitude, generate_image_url
 
 
 from django.shortcuts import get_object_or_404
-from django.contrib.sites.shortcuts import get_current_site
-
-
-def generate_image_url(request, relative_path: str) -> str:
-    site_url = f"http://{get_current_site(request).domain}/"
-    return f"{site_url}{relative_path}"
-
-
-def get_open_hour_list(cafe: Cafe):
-    operating_hours = cafe.operating_hours.all()
-    return [
-        {
-            "day_of_week": hour.day_of_week,
-            "open_time": hour.open_time,
-            "close_time": hour.close_time,
-        }
-        for hour in operating_hours
-    ]
 
 
 @login_required
@@ -84,7 +66,7 @@ def get_all_cafes(request):
             images_urls = [
                 generate_image_url(request, img.image.url) for img in cafe.images.all()
             ]  # 提取所有圖片 URL
-            open_hour_list = get_open_hour_list(cafe)
+            open_hour_list = cafe.get_open_hour_list()
             cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
@@ -132,7 +114,7 @@ def get_cafe(request):
             generate_image_url(request, image.image.url) for image in cafe_images
         ]
 
-        open_hour_list = get_open_hour_list(cafe)
+        open_hour_list = cafe.get_open_hour_list()
         cafe_info = {
             "cafe_id": str(cafe.cafe_id),
             "name": cafe.name,
@@ -219,7 +201,7 @@ def filter_cafes_by_labels(request):
         cafes_with_distance = calculate_and_sort_cafes(cafes, user_location)
         partial_cafe_info = []
         for distance, cafe in cafes_with_distance:
-            open_hour_list = get_open_hour_list(cafe)
+            open_hour_list = cafe.get_open_hour_list()
             partial_cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
@@ -301,7 +283,7 @@ def get_top_cafes(request):
                 "cafe_id": str(cafe.cafe_id),
                 "name": cafe.name,
                 "rating": cafe.rating,
-                "open_hour": get_open_hour_list(cafe),
+                "open_hour": cafe.get_open_hour_list(),
                 "distance": -1
                 if user_location is None
                 else user_location.distance_to(
