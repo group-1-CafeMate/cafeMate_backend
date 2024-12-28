@@ -2,6 +2,13 @@ import math
 from typing import List, Tuple
 from .models import Cafe
 
+from django.contrib.sites.shortcuts import get_current_site
+
+
+def generate_image_url(request, relative_path: str) -> str:
+    site_url = f"http://{get_current_site(request).domain}/"
+    return f"{site_url}{relative_path}"
+
 
 class LatitudeLongitude:
     def __init__(self, latitude: float, longitude: float):
@@ -44,7 +51,7 @@ class LatitudeLongitude:
 
 
 def calculate_and_sort_cafes(
-    cafes: List[Cafe], user_location: LatitudeLongitude
+    cafes: List[Cafe], user_location: LatitudeLongitude | None
 ) -> List[Tuple[float, Cafe]]:
     """
     計算每個 Cafe 與用戶的距離並依距離排序。
@@ -54,6 +61,8 @@ def calculate_and_sort_cafes(
     :param user_lon: 用戶當前的經度。
     :return: 包含距離和 Cafe 的列表，依距離排序。
     """
+    if user_location is None:
+        return [(-1, c) for c in cafes]
     try:
         # 計算每個 Cafe 的距離
         cafes_with_distances = []

@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ),
                 ("email", models.EmailField(blank=True, max_length=50)),
                 ("username", models.CharField(blank=True, max_length=20)),
-                ("password", models.CharField(blank=True, max_length=120)),
+                ("password", models.CharField(blank=True, max_length=150)),
                 ("date", models.DateTimeField(default=django.utils.timezone.now)),
             ],
         ),

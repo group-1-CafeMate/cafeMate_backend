@@ -2,7 +2,7 @@ from user.decorators import login_required
 from .models import Cafe, CafeImage, MetroStation
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .utils import calculate_and_sort_cafes, LatitudeLongitude
+from .utils import calculate_and_sort_cafes, LatitudeLongitude, generate_image_url
 
 
 from django.shortcuts import get_object_or_404
@@ -45,6 +45,7 @@ def get_open_hour_list(cafe: Cafe):
 @require_http_methods(["GET"])
 def get_all_cafes(request):
     try:
+        user_lat, user_lon = None, None
         # 先檢查是否有傳入 metro_station_id
         metro_station_id = request.GET.get("metro_station_id")
         if metro_station_id:
@@ -63,33 +64,25 @@ def get_all_cafes(request):
                     },
                     status=400,
                 )
-        else:
-            # 如果沒有 metro_station_id，則使用用戶提供的經緯度
-            user_lat = request.GET.get("latitude")
-            user_lon = request.GET.get("longitude")
-
-            if not user_lat or not user_lon:
+        # 如果沒有 metro_station_id，則使用用戶提供的經緯度
+        user_lat = request.GET.get("latitude")
+        user_lon = request.GET.get("longitude")
+        has_latlon = user_lat and user_lon
+        # 檢查經緯度是否合理
+        user_location = None
+        if has_latlon:
+            try:
+                user_lat = float(user_lat)
+                user_lon = float(user_lon)
+                user_location = LatitudeLongitude(user_lat, user_lon)
+            except ValueError as e:
                 return JsonResponse(
                     {
-                        "message": "latitude and longitude are required",
+                        "message": f"Invalid latitude or longitude: {str(e)}",
                         "success": False,
                     },
                     status=400,
                 )
-
-        # 檢查經緯度是否合理
-        try:
-            user_lat = float(user_lat)
-            user_lon = float(user_lon)
-            user_location = LatitudeLongitude(user_lat, user_lon)
-        except ValueError as e:
-            return JsonResponse(
-                {
-                    "message": f"Invalid latitude or longitude: {str(e)}",
-                    "success": False,
-                },
-                status=400,
-            )
 
         cafes = Cafe.objects.filter(legal=True)
         if not cafes.exists():
@@ -106,7 +99,7 @@ def get_all_cafes(request):
             images_urls = [
                 generate_image_url(request, img.image.url) for img in cafe.images.all()
             ]  # 提取所有圖片 URL
-            open_hour_list = get_open_hour_list(cafe)
+            open_hour_list = cafe.get_open_hour_list()
             cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
@@ -154,7 +147,7 @@ def get_cafe(request):
             generate_image_url(request, image.image.url) for image in cafe_images
         ]
 
-        open_hour_list = get_open_hour_list(cafe)
+        open_hour_list = cafe.get_open_hour_list()
         cafe_info = {
             "cafe_id": str(cafe.cafe_id),
             "name": cafe.name,
@@ -197,7 +190,7 @@ def filter_cafes_by_labels(request):
 
     # 先檢查是否有傳入 metro_station_id
     metro_station_id = request.GET.get("metro_station_id")
-
+    user_lat, user_lon = None, None
     if metro_station_id:
         try:
             # 從 MetroStation 模型取得經緯度
@@ -211,30 +204,26 @@ def filter_cafes_by_labels(request):
                 {"message": f"Invalid metro_station_id: {str(e)}", "success": False},
                 status=400,
             )
-    else:
-        # 如果沒有 metro_station_id，則檢查用戶傳入的經緯度
-        user_lat = request.GET.get("latitude")
-        user_lon = request.GET.get("longitude")
 
-        if not user_lat or not user_lon:
+    # 如果沒有 metro_station_id，則檢查用戶傳入的經緯度
+    user_lat = request.GET.get("latitude")
+    user_lon = request.GET.get("longitude")
+
+    user_location = None
+    has_latlon = user_lat and user_lon
+    if has_latlon:
+        try:
+            user_lat = float(user_lat)
+            user_lon = float(user_lon)
+            user_location = LatitudeLongitude(user_lat, user_lon)
+        except ValueError as e:
             return JsonResponse(
-                {"message": "latitude and longitude are required", "success": False},
+                {
+                    "message": f"Invalid latitude or longitude: {str(e)}",
+                    "success": False,
+                },
                 status=400,
             )
-
-    # 如果經度、緯度不合理
-    try:
-        user_lat = float(user_lat)
-        user_lon = float(user_lon)
-        user_location = LatitudeLongitude(user_lat, user_lon)
-    except ValueError as e:
-        return JsonResponse(
-            {
-                "message": f"Invalid latitude or longitude: {str(e)}",
-                "success": False,
-            },
-            status=400,
-        )
     try:
         cafes = Cafe.objects.filter(legal=True, **filters)
         if not cafes:
@@ -245,7 +234,7 @@ def filter_cafes_by_labels(request):
         cafes_with_distance = calculate_and_sort_cafes(cafes, user_location)
         partial_cafe_info = []
         for distance, cafe in cafes_with_distance:
-            open_hour_list = get_open_hour_list(cafe)
+            open_hour_list = cafe.get_open_hour_list()
             partial_cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
@@ -276,7 +265,7 @@ def get_top_cafes(request):
     try:
         # 先檢查是否有傳入 metro_station_id
         metro_station_id = request.GET.get("metro_station_id")
-
+        user_lat, user_lon = None, None
         if metro_station_id:
             try:
                 # 從 MetroStation 模型取得經緯度
@@ -293,34 +282,27 @@ def get_top_cafes(request):
                     },
                     status=400,
                 )
-        else:
-            # 如果沒有 metro_station_id，則檢查用戶傳入的經緯度
-            user_lat = request.GET.get("latitude")
-            user_lon = request.GET.get("longitude")
 
-            if not user_lat or not user_lon:
+        # 如果沒有 metro_station_id，則檢查用戶傳入的經緯度
+        user_lat = request.GET.get("latitude")
+        user_lon = request.GET.get("longitude")
+        has_latlon = user_lat and user_lon
+        user_location = None
+        if has_latlon:
+            # 如果經度、緯度不合理
+            try:
+                user_lat = float(user_lat)
+                user_lon = float(user_lon)
+                user_location = LatitudeLongitude(user_lat, user_lon)
+
+            except ValueError as e:
                 return JsonResponse(
                     {
-                        "message": "latitude and longitude are required",
+                        "message": f"Invalid latitude or longitude: {str(e)}",
                         "success": False,
                     },
                     status=400,
                 )
-
-        # 如果經度、緯度不合理
-        try:
-            user_lat = float(user_lat)
-            user_lon = float(user_lon)
-            user_location = LatitudeLongitude(user_lat, user_lon)
-
-        except ValueError as e:
-            return JsonResponse(
-                {
-                    "message": f"Invalid latitude or longitude: {str(e)}",
-                    "success": False,
-                },
-                status=400,
-            )
         # 按照 ig_post_cnt 降序("-"表降序)排列，取前六名
         top_cafes = Cafe.objects.filter(legal=True).order_by("-ig_post_cnt")[:6]
 
@@ -334,8 +316,10 @@ def get_top_cafes(request):
                 "cafe_id": str(cafe.cafe_id),
                 "name": cafe.name,
                 "rating": cafe.rating,
-                "open_hour": get_open_hour_list(cafe),
-                "distance": user_location.distance_to(
+                "open_hour": cafe.get_open_hour_list(),
+                "distance": -1
+                if user_location is None
+                else user_location.distance_to(
                     LatitudeLongitude(cafe.latitude, cafe.longitude)
                 ),
                 "labels": cafe.get_labels(),

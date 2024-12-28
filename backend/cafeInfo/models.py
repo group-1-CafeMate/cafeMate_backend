@@ -45,6 +45,20 @@ class Cafe(models.Model):
             label_list.append("適合讀書或工作")
         return label_list
 
+    def get_open_hour_list(self):
+        """
+        Returns a list of operating hours for the cafe.
+        """
+        operating_hours = self.operating_hours.all()
+        return [
+            {
+                "day_of_week": hour.day_of_week,
+                "open_time": hour.open_time,
+                "close_time": hour.close_time,
+            }
+            for hour in operating_hours
+        ]
+
 
 class OperatingHours(models.Model):
     cafe = models.ForeignKey(

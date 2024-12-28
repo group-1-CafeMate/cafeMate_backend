@@ -49,10 +49,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware", # CorsMiddleware 必須在 CommonMiddleware 之前
+    "corsheaders.middleware.CorsMiddleware",  # CorsMiddleware 必須在 CommonMiddleware 之前
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware", 
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -77,7 +77,6 @@ TEMPLATES = [
     },
 ]
 
-
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True  # 開放所有跨域請求（生產環境建議改為特定域名）
 CORS_ALLOW_CREDENTIALS = True  # 確保允許傳遞 Cookie
@@ -87,6 +86,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:3000",
 ]
+
+# SESSION settings
+SESSION_COOKIE_HTTPONLY = False # 是否禁止 JavaScript 訪問 CSRF Cookie，開發環境可設為 False
+SESSION_COOKIE_SECURE = True    # Cookie 只能透過 HTTPS 傳輸 
+SESSION_COOKIE_SAMESITE = "None" # None: Cookie 可以跨站使用，Strict: 只有同一個站點可使用該 Cookie，Lax: 允許部分跨站請求(從其他站點點擊連結訪問時傳遞 Cookie)
+
 
 # CSRF settings
 # CSRF_COOKIE_SECURE = False # 若為 True，只允許 HTTPS 傳送 CSRF Token
@@ -98,12 +103,18 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
 ]
 
-# SESSION settings
-SESSION_COOKIE_HTTPONLY = False # 是否禁止 JavaScript 訪問 CSRF Cookie，開發環境可設為 False
-SESSION_COOKIE_SECURE = True    # Cookie 只能透過 HTTPS 傳輸 
-SESSION_COOKIE_SAMESITE = "None" # None: Cookie 可以跨站使用，Strict: 只有同一個站點可使用該 Cookie，Lax: 允許部分跨站請求(從其他站點點擊連結訪問時傳遞 Cookie)
-
 WSGI_APPLICATION = "backend.wsgi.application"
+
+# Google Gmail service
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587  # TLS 通訊埠號
+EMAIL_USE_TLS = True  # 開啟TLS(傳輸層安全性)
+# 寄件人的信箱的帳號
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# 寄件人的信箱的應用程式密碼
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
