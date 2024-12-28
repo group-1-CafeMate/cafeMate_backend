@@ -7,7 +7,22 @@ from .utils import calculate_and_sort_cafes, LatitudeLongitude
 
 from django.shortcuts import get_object_or_404
 from django.contrib.sites.shortcuts import get_current_site
+from django.middleware.csrf import CsrfViewMiddleware
 
+def debug_csrf_token(request):
+    csrf_header = request.META.get("HTTP_X_CSRFTOKEN")
+    csrf_cookie = request.COOKIES.get("csrftoken")
+
+    print("CSRF Header:", csrf_header)
+    print("CSRF Cookie:", csrf_cookie)
+
+    # 驗證 CSRF
+    try:
+        CsrfViewMiddleware().process_view(request, None, None, None)
+        print("CSRF Validation Passed")
+    except Exception as e:
+        print("CSRF Validation Error:", e)
+        return JsonResponse({"error": "CSRF validation failed"}, status=403)
 
 def generate_image_url(request, relative_path: str) -> str:
     site_url = f"http://{get_current_site(request).domain}/"
