@@ -26,6 +26,7 @@ from mail import views as mail_views
 urlpatterns = [
     path("signup/", user_views.sign_up),
     path("login/", user_views.login_view),
+    path("logout/", user_views.logout_view),
     path("user/", user_views.get_information),
     path("admin/", admin.site.urls),
     path("cafes/", cafe_views.get_all_cafes, name="get_all_cafes"),
