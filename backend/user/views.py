@@ -120,9 +120,16 @@ def login_view(request):
 
 @csrf_exempt
 def logout_view(request):
-    if "uid" in request.session:
-        del request.session["uid"]
-    return JsonResponse({"status": 200, "message": "已成功登出"}, status=200)
+    if request.method == "POST":
+        # 清除 session 資訊
+        request.session.flush()
+        response = JsonResponse(
+            {"status": 200, "success": True, "message": "登出成功"}, status=200
+        )
+        response.delete_cookie("sessionid")
+        return response
+    else:
+        return HttpResponseNotAllowed(["POST"])
 
 
 @login_required
