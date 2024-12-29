@@ -40,6 +40,7 @@ urlpatterns = [
         cafe_views.get_top_cafes,
         name="get_top_cafes",
     ),
+    path("metro-stations/", cafe_views.get_all_metro_stations),
     path("user/email/", mail_views.send_email_view),
     path("user/check/<str:token>", user_views.check),
     path("pw/forgot/", mail_views.forgot),
