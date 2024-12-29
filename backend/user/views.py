@@ -106,6 +106,12 @@ def login_view(request):
                 },
                 status=200,
             )
+            response.set_cookie(
+                "sessionid",
+                request.session.session_key,
+                expires=3600 * 12,  # 12小時有效
+            )
+            return response
         else:
             return JsonResponse(
                 {"status": 401, "success": False, "message": "Invalid credentials"},
@@ -146,29 +152,56 @@ def get_information(request):
 
 @csrf_exempt
 def check(request, token):  # 信箱驗證
-    if request.method == "POST" and request.content_type == "application/json":
+    if request.method == "GET":
         try:
-            data = json.loads(request.body)
             token_use = email_token()
             email = token_use.confirm_token(token)  # 確認 token 並獲取 email
 
             if email is None:
-                return JsonResponse(
-                    {"status": "1", "message": "Invalid token"}, status=400
+                return HttpResponse(
+                    "<h1>Invalid or expired token</h1><p>Unable to verify your email. Please request a new verification link.</p>",
+                    status=400,
+                    content_type="text/html",
                 )
 
-            user = Profile.objects.get(email=email)
-            # 更新用戶的 email_verified 狀態
-            user.email_verified = True
-            user.save()
-            message = {"status": "0", "message": "Email verified successfully"}
-        except Profile.DoesNotExist:
-            message = {"status": "1", "message": "User not found"}
-        except Exception as e:
-            print(e)
-            message = {"status": "1", "message": "Error occurred during verification"}
+            # 確保 Profile 存在並更新驗證狀態
+            try:
+                user = Profile.objects.get(email=email)
+                if user.email_verified:
+                    return HttpResponse(
+                        "<h1>Email Already Verified</h1><p>Your email has already been verified. Thank you!</p>",
+                        status=200,
+                        content_type="text/html",
+                    )
 
-        return JsonResponse(message)
+                user.email_verified = True
+                user.save()
+
+                return HttpResponse(
+                    "<h1>Verification Successful</h1><p>Your email has been verified. Thank you for joining us!</p>",
+                    status=200,
+                    content_type="text/html",
+                )
+            except Profile.DoesNotExist:
+                return HttpResponse(
+                    "<h1>User Not Found</h1><p>The user associated with this token does not exist.</p>",
+                    status=404,
+                    content_type="text/html",
+                )
+
+        except Exception as e:
+            print(f"Error: {e}")
+            return HttpResponse(
+                "<h1>Verification Failed</h1><p>An error occurred during verification. Please try again later.</p>",
+                status=500,
+                content_type="text/html",
+            )
+
+    return HttpResponse(
+        "<h1>Invalid Request</h1><p>This endpoint only supports GET requests.</p>",
+        status=405,
+        content_type="text/html",
+    )
 
 
 # 重設密碼
