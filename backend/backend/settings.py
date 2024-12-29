@@ -81,18 +81,19 @@ TEMPLATES = [
 # 允許的 CORS 設定
 CORS_ALLOW_ALL_ORIGINS = True  # 開放所有跨域請求（生產環境建議改為特定域名）
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
-CORS_ALLOW_HEADERS = ("*",)
+CORS_ALLOW_HEADERS = ("*", "content-type", "Origin")
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://localhost:3000",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:8000",
+#     "http://localhost:3000",
+# ]
 CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_SECURE = None
 
 SESSION_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_PARTITIONED = True
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
@@ -101,17 +102,6 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 WSGI_APPLICATION = "backend.wsgi.application"
-
-# Google Gmail service
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587  # TLS 通訊埠號
-EMAIL_USE_TLS = True  # 開啟TLS(傳輸層安全性)
-# 寄件人的信箱的帳號
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-# 寄件人的信箱的應用程式密碼
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 # Database
@@ -156,7 +146,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+# Google Gmail service
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587  # TLS 通訊埠號
+EMAIL_USE_TLS = True  # 開啟TLS(傳輸層安全性)
+# 寄件人的信箱的帳號
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# 寄件人的信箱的應用程式密碼
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
@@ -168,7 +167,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-MEDIA_URL = "/media/"
+MEDIA_URL = "media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

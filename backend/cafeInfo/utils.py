@@ -2,6 +2,13 @@ import math
 from typing import List, Tuple
 from .models import Cafe
 
+from django.contrib.sites.shortcuts import get_current_site
+
+
+def generate_image_url(request, relative_path: str) -> str:
+    site_url = f"http://{get_current_site(request).domain}"
+    return f"{site_url}{relative_path}"
+
 
 class LatitudeLongitude:
     def __init__(self, latitude: float, longitude: float):

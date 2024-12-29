@@ -2,28 +2,27 @@ from user.decorators import login_required
 from .models import Cafe, CafeImage, MetroStation
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .utils import calculate_and_sort_cafes, LatitudeLongitude
+from .utils import calculate_and_sort_cafes, LatitudeLongitude, generate_image_url
 
 
 from django.shortcuts import get_object_or_404
-from django.contrib.sites.shortcuts import get_current_site
+from django.middleware.csrf import CsrfViewMiddleware
 
 
-def generate_image_url(request, relative_path: str) -> str:
-    site_url = f"http://{get_current_site(request).domain}/"
-    return f"{site_url}{relative_path}"
+def debug_csrf_token(request):
+    csrf_header = request.META.get("HTTP_X_CSRFTOKEN")
+    csrf_cookie = request.COOKIES.get("csrftoken")
 
+    print("CSRF Header:", csrf_header)
+    print("CSRF Cookie:", csrf_cookie)
 
-def get_open_hour_list(cafe: Cafe):
-    operating_hours = cafe.operating_hours.all()
-    return [
-        {
-            "day_of_week": hour.day_of_week,
-            "open_time": hour.open_time,
-            "close_time": hour.close_time,
-        }
-        for hour in operating_hours
-    ]
+    # 驗證 CSRF
+    try:
+        CsrfViewMiddleware().process_view(request, None, None, None)
+        print("CSRF Validation Passed")
+    except Exception as e:
+        print("CSRF Validation Error:", e)
+        return JsonResponse({"error": "CSRF validation failed"}, status=403)
 
 
 @login_required
@@ -84,7 +83,7 @@ def get_all_cafes(request):
             images_urls = [
                 generate_image_url(request, img.image.url) for img in cafe.images.all()
             ]  # 提取所有圖片 URL
-            open_hour_list = get_open_hour_list(cafe)
+            open_hour_list = cafe.get_open_hour_list()
             cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
@@ -132,7 +131,7 @@ def get_cafe(request):
             generate_image_url(request, image.image.url) for image in cafe_images
         ]
 
-        open_hour_list = get_open_hour_list(cafe)
+        open_hour_list = cafe.get_open_hour_list()
         cafe_info = {
             "cafe_id": str(cafe.cafe_id),
             "name": cafe.name,
@@ -219,7 +218,7 @@ def filter_cafes_by_labels(request):
         cafes_with_distance = calculate_and_sort_cafes(cafes, user_location)
         partial_cafe_info = []
         for distance, cafe in cafes_with_distance:
-            open_hour_list = get_open_hour_list(cafe)
+            open_hour_list = cafe.get_open_hour_list()
             partial_cafe_info.append(
                 {
                     "cafe_id": str(cafe.cafe_id),
@@ -301,16 +300,21 @@ def get_top_cafes(request):
                 "cafe_id": str(cafe.cafe_id),
                 "name": cafe.name,
                 "rating": cafe.rating,
-                "open_hour": get_open_hour_list(cafe),
-                "distance": -1
-                if user_location is None
-                else user_location.distance_to(
-                    LatitudeLongitude(cafe.latitude, cafe.longitude)
+                "open_hour": cafe.get_open_hour_list(),
+                "distance": (
+                    -1
+                    if user_location is None
+                    else user_location.distance_to(
+                        LatitudeLongitude(cafe.latitude, cafe.longitude)
+                    )
                 ),
                 "labels": cafe.get_labels(),
-                "image_url": generate_image_url(request, cafe.images.all()[0].image.url)
-                if cafe.images.exists()
-                else None,
+                "image_url": (
+                    generate_image_url(request, cafe.images.all()[0].image.url)
+                    if cafe.images.exists()
+                    else None
+                ),
+                "ig_post_count": cafe.ig_post_cnt,
             }
             for cafe in top_cafes
         ]
@@ -321,3 +325,9 @@ def get_top_cafes(request):
 
     except Exception as e:
         return JsonResponse({"message": str(e), "success": False}, status=500)
+
+
+@require_http_methods(["GET"])
+def get_all_metro_stations(request):
+    metro_stations = MetroStation.objects.all().values("metro_station_id", "name")
+    return JsonResponse(list(metro_stations), safe=False)
