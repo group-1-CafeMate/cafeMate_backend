@@ -42,14 +42,16 @@ def forgot(request):  # 忘記密碼
         try:
             # 解析請求的 JSON 資料
             data = json.loads(request.body)
-            email = data.get("email")
-            if not email:
+            username = data.get("username")
+            if not username:
                 return JsonResponse(
-                    {"status": "1", "message": "Email is required"}, status=400
+                    {"status": "1", "message": "User is required"}, status=400
                 )
 
             # 查找用戶
-            user = Profile.objects.get(email=email)
+            user = Profile.objects.get(username=username)
+            # 用戶電子信箱
+            email = user.email
 
             # 生成新的密碼
             chars = string.ascii_letters + string.digits
@@ -57,19 +59,38 @@ def forgot(request):  # 忘記密碼
             hashed_pw = make_password(new_pw)
 
             # 更新用戶密碼
-            rows_updated = Profile.objects.filter(email=email).update(
+            rows_updated = Profile.objects.filter(username=username).update(
                 password=hashed_pw
             )
             if rows_updated == 0:
                 raise Exception("Password update failed: No matching user found")
 
-            # 準備郵件內容
-            title = "找回密碼"
+            # 準備郵件內容 (HTML格式)
+            title = "CafeMate 密碼重設"
             sender = settings.EMAIL_HOST_USER
-            msg = "\n".join([f"歡迎 {user.username}", f"新的密碼為:\n{new_pw}"])
+            msg = f"""
+            <html>
+                <body>
+                    <h2>親愛的 {user.username}，</h2>
+                    <p>感謝您使用 CafeMate！您的新密碼已經重設成功。以下是您的新密碼：</p>
+                    <p><strong>新密碼：</strong>{new_pw}</p>
+                    <p>為了保護您的帳戶安全，建議您在首次登入後立即修改密碼。</p>
+                    <p>如果您未進行此操作，請忽略此郵件。</p>
+                    <br>
+                    <p>祝您使用愉快！</p>
+                    <p>— CafeMate 團隊</p>
+                </body>
+            </html>
+            """
 
-            # 寄送郵件
-            send_mail(title, msg, sender, [email])
+            # 寄送郵件，設置 HTML 格式
+            send_mail(
+                title,  # 郵件標題
+                "",  # 這裡的內容是空的，因為我們將 HTML 內容設置在 html_message 中
+                sender,  # 發件人
+                [email],  # 收件人
+                html_message=msg,  # 這是 HTML 格式的內容
+            )
 
             # 返回成功訊息
             return JsonResponse({"status": "0", "message": "Password reset email sent"})
