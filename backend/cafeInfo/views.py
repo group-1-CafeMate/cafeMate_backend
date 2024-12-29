@@ -301,15 +301,20 @@ def get_top_cafes(request):
                 "name": cafe.name,
                 "rating": cafe.rating,
                 "open_hour": cafe.get_open_hour_list(),
-                "distance": -1
-                if user_location is None
-                else user_location.distance_to(
-                    LatitudeLongitude(cafe.latitude, cafe.longitude)
+                "distance": (
+                    -1
+                    if user_location is None
+                    else user_location.distance_to(
+                        LatitudeLongitude(cafe.latitude, cafe.longitude)
+                    )
                 ),
                 "labels": cafe.get_labels(),
-                "image_url": generate_image_url(request, cafe.images.all()[0].image.url)
-                if cafe.images.exists()
-                else None,
+                "image_url": (
+                    generate_image_url(request, cafe.images.all()[0].image.url)
+                    if cafe.images.exists()
+                    else None
+                ),
+                "ig_post_count": cafe.ig_post_cnt,
             }
             for cafe in top_cafes
         ]
