@@ -1,13 +1,13 @@
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
 # from django.contrib.auth.models import User
 from user.decorators import login_required
+from django.middleware.csrf import get_token
 
 from .models import Profile
 import json
@@ -94,6 +94,7 @@ def login_view(request):
         if user.authenticate(password):
             request.session["uid"] = str(user.uid)
 
+            csrf_token = get_token(request)
             response = JsonResponse(
                 {
                     "status": 200,
@@ -103,10 +104,16 @@ def login_view(request):
                 },
                 status=200,
             )
+            valid_time = 3600 * 12  # 12小時有效
             response.set_cookie(
                 "sessionid",
                 request.session.session_key,
-                expires=3600 * 12,  # 12小時有效
+                expires=valid_time,
+            )
+            response.set_cookie(
+                "csrftoken",
+                csrf_token,
+                expires=valid_time,
             )
             return response
         else:
@@ -118,11 +125,18 @@ def login_view(request):
         return HttpResponseNotAllowed(["POST"])
 
 
-@csrf_exempt
+@csrf_protect
 def logout_view(request):
-    if "uid" in request.session:
-        del request.session["uid"]
-    return JsonResponse({"status": 200, "message": "已成功登出"}, status=200)
+    if request.method == "POST":
+        # 清除 session 資訊
+        request.session.flush()
+        response = JsonResponse(
+            {"status": 200, "success": True, "message": "登出成功"}, status=200
+        )
+        response.delete_cookie("sessionid")
+        return response
+    else:
+        return HttpResponseNotAllowed(["POST"])
 
 
 @login_required
