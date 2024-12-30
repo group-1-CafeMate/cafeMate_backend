@@ -188,10 +188,10 @@ def filter_cafes_by_labels(request):
                 {"message": f"Invalid metro_station_id: {str(e)}", "success": False},
                 status=400,
             )
-
-    # 如果沒有 metro_station_id，則檢查用戶傳入的經緯度
-    user_lat = request.GET.get("latitude")
-    user_lon = request.GET.get("longitude")
+    else:
+        # 如果沒有 metro_station_id，則檢查用戶傳入的經緯度
+        user_lat = request.GET.get("latitude")
+        user_lon = request.GET.get("longitude")
 
     user_location = None
     has_latlon = user_lat and user_lon
