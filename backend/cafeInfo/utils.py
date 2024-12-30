@@ -6,7 +6,7 @@ from django.contrib.sites.shortcuts import get_current_site
 
 
 def generate_image_url(request, relative_path: str) -> str:
-    site_url = f"http://{get_current_site(request).domain}/"
+    site_url = f"http://{get_current_site(request).domain}"
     return f"{site_url}{relative_path}"
 
 
@@ -83,8 +83,3 @@ def calculate_and_sort_cafes(
         return cafes_with_distances
     except Exception as e:
         raise ValueError(f"Error in calculating and sorting cafes: {str(e)}")
-
-
-def generate_image_url(request, relative_path: str) -> str:
-    site_url = f"http://{get_current_site(request).domain}/"
-    return f"{site_url}{relative_path}"

@@ -188,10 +188,10 @@ def filter_cafes_by_labels(request):
                 {"message": f"Invalid metro_station_id: {str(e)}", "success": False},
                 status=400,
             )
-
-    # 如果沒有 metro_station_id，則檢查用戶傳入的經緯度
-    user_lat = request.GET.get("latitude")
-    user_lon = request.GET.get("longitude")
+    else:
+        # 如果沒有 metro_station_id，則檢查用戶傳入的經緯度
+        user_lat = request.GET.get("latitude")
+        user_lon = request.GET.get("longitude")
 
     user_location = None
     has_latlon = user_lat and user_lon
@@ -301,15 +301,20 @@ def get_top_cafes(request):
                 "name": cafe.name,
                 "rating": cafe.rating,
                 "open_hour": cafe.get_open_hour_list(),
-                "distance": -1
-                if user_location is None
-                else user_location.distance_to(
-                    LatitudeLongitude(cafe.latitude, cafe.longitude)
+                "distance": (
+                    -1
+                    if user_location is None
+                    else user_location.distance_to(
+                        LatitudeLongitude(cafe.latitude, cafe.longitude)
+                    )
                 ),
                 "labels": cafe.get_labels(),
-                "image_url": generate_image_url(request, cafe.images.all()[0].image.url)
-                if cafe.images.exists()
-                else None,
+                "image_url": (
+                    generate_image_url(request, cafe.images.all()[0].image.url)
+                    if cafe.images.exists()
+                    else None
+                ),
+                "ig_post_count": cafe.ig_post_cnt,
             }
             for cafe in top_cafes
         ]

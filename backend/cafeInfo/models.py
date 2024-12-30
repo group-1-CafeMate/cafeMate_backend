@@ -81,7 +81,7 @@ class CafeImage(models.Model):
 
 
 class MetroStation(models.Model):
-    metro_station_id = models.AutoField(primary_key=True)
+    metro_station_id = models.CharField(primary_key=True, max_length=10)
     name = models.CharField(max_length=50)
     latitude = models.FloatField(null=False)
     longitude = models.FloatField(null=False)

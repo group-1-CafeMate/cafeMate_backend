@@ -81,7 +81,7 @@ TEMPLATES = [
 # 允許的 CORS 設定
 CORS_ALLOW_ALL_ORIGINS = True  # 開放所有跨域請求（生產環境建議改為特定域名）
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
-CORS_ALLOW_HEADERS = ("*", "content-type")
+CORS_ALLOW_HEADERS = ("*", "content-type", "Origin")
 
 # CORS_ALLOWED_ORIGINS = [
 #     "http://localhost:8000",
@@ -168,7 +168,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-MEDIA_URL = "/media/"
+MEDIA_URL = "media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

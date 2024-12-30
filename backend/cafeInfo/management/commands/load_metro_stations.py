@@ -20,6 +20,7 @@ class Command(BaseCommand):
                 reader = csv.DictReader(csvfile)
                 stations = [
                     MetroStation(
+                        metro_station_id=row["station_code"],
                         name=row["station_name_tw"],
                         latitude=float(row["lat"]),
                         longitude=float(row["lon"]),
