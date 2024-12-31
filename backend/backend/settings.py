@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 import dotenv
+from celery.schedules import crontab
 
 # Load .env file
 dotenv.load_dotenv()
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     # our apps
     "cafeInfo",
     "user",
+    "mail",
 ]
 
 MIDDLEWARE = [
@@ -146,7 +148,49 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# AWS 設定
+AWS_REGION = "ap-northeast-1"  # 使用的 AWS 區域
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")  # IAM USER's ACCESS_KEY
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")  # USER's SECRET_ACCESS_KEY
+AWS_SQS_VERIFICATION_QUEUE_URL = "https://sqs.ap-northeast-1.amazonaws.com/481665090171/EmailSystemSqsStack-EmailVerificationQueue00C720A8-S96W6o7HLuQi"
+AWS_SQS_PASSWORD_RESET_QUEUE_URL = "https://sqs.ap-northeast-1.amazonaws.com/481665090171/EmailSystemSqsStack-ForgotPasswordQueue5CF9634F-EbHptG23l9yG"
+
+# Celery 設置
+CELERY_BROKER_URL = (
+    f"sqs://{os.getenv('AWS_ACCESS_KEY_ID')}:{os.getenv('AWS_SECRET_ACCESS_KEY')}@"
+)
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "region": "ap-northeast-1",  # 改為你的 AWS 區域
+    "queue_name_prefix": "celery-",
+}
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_BEAT_SCHEDULE = {
+    "process_verification_email_every_minute": {
+        "task": "mail.tasks.process_verification_email_from_sqs",
+        "schedule": crontab(minute="*"),  # 每分鐘執行
+    },
+    "process_forgot_email_every_minute": {
+        "task": "mail.tasks.process_forgot_email_from_sqs",
+        "schedule": crontab(minute="*"),  # 每分鐘執行
+    },
+}
+
+"""
+啟用後，當任務啟動時，會將任務的狀態從 PENDING 更新為 STARTED。
+這對於監控任務進度很有用，可以更準確地追踪正在執行的任務。
+"""
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 分鐘
+"""
+為每個任務設置執行的時間上限，這裡是 30 分鐘。
+如果任務在 30 分鐘內未完成，Celery 會強制終止該任務。
+適用
+"""
+
 # Google Gmail service
+SITE_URL = "http://127.0.0.1:8000"  # 網站設定 本地端用
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587  # TLS 通訊埠號
@@ -156,6 +200,40 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 # 寄件人的信箱的應用程式密碼
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# 日誌配置
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "mail.log",
+            "formatter": "verbose",
+        },
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "mail": {
+            "handlers": ["file", "console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+}
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
