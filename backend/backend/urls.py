@@ -42,8 +42,8 @@ urlpatterns = [
         name="get_top_cafes",
     ),
     path("metro-stations/", cafe_views.get_all_metro_stations),
-    path("user/email/", mail_views.send_email_view),
+    path("user/email/", mail_views.enqueue_verification_email),
     path("user/check/<str:token>", user_views.check),
-    path("pw/forgot/", mail_views.forgot),
+    path("pw/forgot/", mail_views.enqueue_forgot_email),
     path("pw/reset/", user_views.reset_password),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
