@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 設置debug 生產環境要改False
-DEBUG = os.getenv("DEBUG").lower() == "true"
+DEBUG = os.getenv("DEBUG")
 
 ALLOWED_HOSTS = ["*"]
 
@@ -119,17 +119,6 @@ DATABASES = {
         "PORT": "3306",
     }
 }
-
-# Google Gmail service
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587  # TLS 通訊埠號
-EMAIL_USE_TLS = True  # 開啟TLS(傳輸層安全性)
-# 寄件人的信箱的帳號
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-# 寄件人的信箱的應用程式密碼
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # CACHES = {
 #     'default': {
