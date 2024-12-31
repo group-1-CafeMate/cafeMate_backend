@@ -51,7 +51,7 @@ def enqueue_email(email, name, token_s, mail_type):
                 "email": email,
                 "name": name,
             }
-            send_to_sqs.delay(message, settings.AWS_SQS_PASSWORD_RESET_QUEUE_URL)
+            send_to_sqs.delay(message, settings.AWS_SQS_NEW_PASSWORD_QUEUE_URL)
             print("Email request enqueued successfully.")
         return "Email request enqueued successfully."
     except Exception as e:
@@ -122,7 +122,7 @@ def process_forgot_email_from_sqs():
         sqs_client = boto3.client("sqs", region_name=settings.AWS_REGION)
         try:
             response = sqs_client.receive_message(
-                QueueUrl=settings.AWS_SQS_PASSWORD_RESET_QUEUE_URL,
+                QueueUrl=settings.AWS_SQS_NEW_PASSWORD_QUEUE_URL,
                 MaxNumberOfMessages=1,
                 WaitTimeSeconds=10,
             )
@@ -174,7 +174,7 @@ def process_forgot_email_from_sqs():
 
             # 刪除已處理的消息
             sqs_client.delete_message(
-                QueueUrl=settings.AWS_SQS_PASSWORD_RESET_QUEUE_URL,
+                QueueUrl=settings.AWS_SQS_NEW_PASSWORD_QUEUE_URL,
                 ReceiptHandle=message["ReceiptHandle"],
             )
 
