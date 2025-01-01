@@ -32,7 +32,11 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # 設置debug 生產環境要改False
 DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "cafe.urcafemate.me",
+    "localhost",
+    "127.0.0.1",
+]
 
 # Application definition
 
