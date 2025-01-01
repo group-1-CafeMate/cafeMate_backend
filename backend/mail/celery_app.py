@@ -25,7 +25,7 @@ app.conf.beat_schedule = {
         "schedule": crontab(minute="*"),  # 每分钟执行
     },
 }
-app.conf.CELERYBEAT_SCHEDULE_FILENAME = "mail/celery_beat_schedule.db"
+app.conf.CELERYBEAT_SCHEDULE_FILENAME = "mail/celery_beat_schedule"
 
 
 @app.task(bind=True)
