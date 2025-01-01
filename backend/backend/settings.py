@@ -194,7 +194,7 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 分鐘
 """
 
 # Google Gmail service
-SITE_URL = "http://127.0.0.1:8000"  # 網站設定 本地端用
+SITE_URL = os.getenv("GSERVICE_SITE_URL")
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587  # TLS 通訊埠號
