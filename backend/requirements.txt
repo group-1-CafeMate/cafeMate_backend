@@ -1,13 +1,16 @@
 annotated-types==0.7.0
 anyio==4.7.0
 asgiref==3.8.1
+celery==5.4.0
 certifi==2024.12.14
 cffi==1.17.1
 charset-normalizer==3.4.0
 cryptography==44.0.0
 distro==1.9.0
 Django==5.0.4
+boto3
 django-cors-headers==4.6.0
+django-celery-beat
 django-migration-zero==2.3.6
 django-zeromigrations==0.3.2
 djangorestframework==3.15.1
@@ -21,6 +24,7 @@ numpy==1.26.4
 openai==1.57.4
 pillow==11.0.0
 pycparser==2.22
+pycurl
 pydantic==2.10.3
 pydantic_core==2.27.1
 PyMySQL==1.1.1
@@ -36,5 +40,3 @@ typing_extensions==4.12.2
 urllib3==2.2.3
 wrapt==1.17.0
 pymysql==1.1.1
-celery==5.4.0
-boto3==1.35.90

@@ -219,7 +219,7 @@ LOGGING = {
         "file": {
             "level": "INFO",
             "class": "logging.FileHandler",
-            "filename": "logs/mail.log",
+            "filename": "/app/logs/mail.log",
             "formatter": "verbose",
         },
         "console": {
