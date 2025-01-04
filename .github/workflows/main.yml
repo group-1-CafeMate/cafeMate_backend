@@ -132,6 +132,17 @@ jobs:
           BACKEND_CONTAINER_NAME: ${{ env.BACKEND_CONTAINER_NAME }}
           CELERY_WORKER_CONTAINER_NAME: ${{ env.CELERY_WORKER_CONTAINER_NAME }}
           CELERY_BEAT_CONTAINER_NAME: ${{ env.CELERY_BEAT_CONTAINER_NAME }}
+          MYSQL_NAME: ${{ secrets.MYSQL_NAME }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: 'False'
+          AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          EMAIL_HOST_USER: cafemategroup1@gmail.com
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+          GSERVICE_SITE_URL: https://cafe.urcafemate.me
         uses: appleboy/ssh-action@v0.1.8
         with:
           host: ${{ secrets.EC2_HOST }}
