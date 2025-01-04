@@ -10,7 +10,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
 from webdriver_manager.chrome import ChromeDriverManager
-from time import sleep
 
 
 class Command(BaseCommand):
