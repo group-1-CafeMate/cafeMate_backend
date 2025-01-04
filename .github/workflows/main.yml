@@ -31,7 +31,19 @@ jobs:
         pip install -r backend/requirements.txt
 
     # 4. 運行測試
-    - name: Run tests
+    - name: Run Tests
+      env:
+        MYSQL_NAME: test_db
+        MYSQL_USER: root
+        MYSQL_PASSWORD: root
+        MYSQL_HOST: 127.0.0.1
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DEBUG: 'True'
+        AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        EMAIL_HOST_USER: cafemategroup1@gmail.com
+        EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+        GSERVICE_SITE_URL: http://localhost:8000
       run: python backend/manage.py test
 
     # 5. 登錄 Docker Hub
@@ -63,8 +75,8 @@ jobs:
         port: 22
         script: |
             # 停止並移除舊的容器
-            docker-compose -f /path/to/docker-compose.yml down || true
+            docker-compose -f docker-compose.yml down || true
             # 拉取最新的 Docker 映像
-            docker-compose -f /path/to/docker-compose.yml pull
+            docker-compose -f docker-compose.yml pull
             # 啟動新的服務容器
-            docker-compose -f /path/to/docker-compose.yml up -d
+            docker-compose -f docker-compose.yml up -d
