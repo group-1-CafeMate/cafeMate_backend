@@ -13,6 +13,8 @@ services:
       - app_network
     environment:
       - PYTHONPATH=/app
+      - LOG_FILE_PATH=/app/logs/mail.log # 設置 logs 目錄在 Docker 容器內的路徑
+
 
   celery_worker:
     build:
