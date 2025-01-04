@@ -1,85 +1,149 @@
 name: Backend CI/CD Pipeline
 
+env:
+  DOCKER_BACKEND_IMAGE: ychaocode/django-server
+  DOCKER_CELERY_WORKER_IMAGE: ychaocode/celery-worker
+  DOCKER_CELERY_BEAT_IMAGE: ychaocode/celery-beat
+  BACKEND_CONTAINER_NAME: django-server
+  CELERY_WORKER_CONTAINER_NAME: celery-worker
+  CELERY_BEAT_CONTAINER_NAME: celery-beat
+
 on:
-    push:
-      branches:
-        - main  # 當推送到 main 分支時觸發
-    pull_request:
-      branches:
-        - main  # 當 PR 合併到 main 時觸發
-  
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-and-push:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-    # 1. 檢查代碼
-    - name: Check out code
-      uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v3
 
-    # 2. 設置 Python 環境
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: 3.10.15
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.10.15
 
-    # 3. 安裝依賴
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r backend/requirements.txt
-    # 4. 安裝 Docker 和 Docker Compose
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
 
-    # 5. 運行測試
-    - name: Run Tests
-      env:
-        MYSQL_NAME: test_db
-        MYSQL_USER: root
-        MYSQL_PASSWORD: root
-        MYSQL_HOST: 127.0.0.1
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        DEBUG: 'True'
-        AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        EMAIL_HOST_USER: cafemategroup1@gmail.com
-        EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
-        GSERVICE_SITE_URL: http://localhost:8000
-      run: python backend/manage.py test
+      - name: Run Unit Tests
+        env:
+          MYSQL_NAME: test_db
+          MYSQL_USER: root
+          MYSQL_PASSWORD: root
+          MYSQL_HOST: 127.0.0.1
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: 'True'
+          AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          EMAIL_HOST_USER: cafemategroup1@gmail.com
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+          GSERVICE_SITE_URL: http://localhost:8000
+        run: |
+          python backend/manage.py test
 
-    # 6. 登錄 Docker Hub
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME_YC }}
-        password: ${{ secrets.DOCKER_PASSWORD_YC }}
+  build-images:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
 
-    # 7. 構建 Docker 映像並推送至 Docker Hub
-    - name: Build and Push Docker images
-      run: |
-        docker-compose -f docker-compose.yml build
-        docker-compose -f docker-compose.yml push
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-  # 8. 部署至 EC2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME_YC }}
+          password: ${{ secrets.DOCKER_PASSWORD_YC }}
+
+      - name: Build and Push Backend Docker image
+        env:
+          IMAGE_TAG:latest: "${{ github.ref_name }}-backend-${{ github.run_id }}"
+        run: |
+          docker build -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG:latest -f Dockerfile backend/
+          docker push $DOCKER_BACKEND_IMAGE:$IMAGE_TAG:latest
+
+      - name: Build and Push Celery Worker Docker image
+        env:
+          IMAGE_TAG:latest: "${{ github.ref_name }}-backend-${{ github.run_id }}"
+        run: |
+          docker build -t $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG:latest -f Dockerfile.celery_worker backend/
+          docker push $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG:latest
+
+      - name: Build and Push Celery Beat Docker image
+        env:
+          IMAGE_TAG:latest: "${{ github.ref_name }}-backend-${{ github.run_id }}"
+        run: |
+          docker build -t $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG:latest -f Dockerfile.celery_beat backend/
+          docker push $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG:latest
+
   deploy-to-ec2:
     runs-on: ubuntu-latest
-    needs: build-and-push
-
+    needs: build-images
     steps:
-    # 使用 SSH 登入 EC2
-    - name: Deploy to EC2
-      uses: appleboy/ssh-action@v0.1.8
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: 22
-        script: |
-            # 停止並移除舊的容器
-            docker-compose -f docker-compose.yml down || true
-            # 拉取最新的 Docker 映像
-            docker-compose -f docker-compose.yml pull
-            # 啟動新的服務容器
-            docker-compose -f docker-compose.yml up -d
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+
+            # 拉取最新鏡像
+            docker pull $DOCKER_BACKEND_IMAGE:$IMAGE_TAG:latest
+            docker pull $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG:latest
+            docker pull $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG:latest
+
+            # 刪除舊容器
+            docker rm -f $BACKEND_CONTAINER_NAME || true
+            docker rm -f $CELERY_WORKER_CONTAINER_NAME || true
+            docker rm -f $CELERY_BEAT_CONTAINER_NAME || true
+
+            # 啟動新容器
+            docker run -d --name $BACKEND_CONTAINER_NAME -p 8000:8000 $DOCKER_BACKEND_IMAGE:$IMAGE_TAG:latest
+            docker run -d --name $CELERY_WORKER_CONTAINER_NAME $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG:latest
+            docker run -d --name $CELERY_BEAT_CONTAINER_NAME $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG:latest
+
+      - name: Notify Discord on Deployment Success
+        if: ${{ success() }}
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          username: 'CI/CD github bot'
+          message: |
+            **部署結果：成功** 🎉
+            容器已更新並正常啟動。
+            環境：${{ runner.os }}
+            觸發事件：${{ github.event_name }}
+            分支：${{ github.ref }}
+            提交：${{ github.sha }}
+
+      - name: Notify Discord on Deployment Failure
+        if: ${{ failure() }}
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          username: 'CI/CD github bot'
+          message: |
+            **部署結果：失敗** ❌
+            請檢查部署logs以了解詳情
+            環境：${{ runner.os }}
+            觸發事件：${{ github.event_name }}
+            分支：${{ github.ref }}
+            提交：${{ github.sha }}
