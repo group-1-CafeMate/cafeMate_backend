@@ -205,7 +205,9 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-log_file_path = os.getenv("LOG_FILE_PATH", "logs/mail.log")  # 默認為 'logs/mail.log'
+log_file_path = os.getenv(
+    "LOG_FILE_PATH", str(BASE_DIR / "logs" / "mail.log")
+)  # 默認為 'logs/mail.log'
 
 # 日誌配置
 LOGGING = {
