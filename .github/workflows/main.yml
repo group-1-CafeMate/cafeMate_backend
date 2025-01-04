@@ -126,12 +126,19 @@ jobs:
       - name: Deploy to EC2
         env: 
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
+          DOCKER_BACKEND_IMAGE: ${{ env.DOCKER_BACKEND_IMAGE }}
+          DOCKER_CELERY_WORKER_IMAGE: ${{ env.DOCKER_CELERY_WORKER_IMAGE }}
+          DOCKER_CELERY_BEAT_IMAGE: ${{ env.DOCKER_CELERY_BEAT_IMAGE }}
+          BACKEND_CONTAINER_NAME: ${{ env.BACKEND_CONTAINER_NAME }}
+          CELERY_WORKER_CONTAINER_NAME: ${{ env.CELERY_WORKER_CONTAINER_NAME }}
+          CELERY_BEAT_CONTAINER_NAME: ${{ env.CELERY_BEAT_CONTAINER_NAME }}
         uses: appleboy/ssh-action@v0.1.8
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
+          envs: IMAGE_TAG,DOCKER_BACKEND_IMAGE,DOCKER_CELERY_WORKER_IMAGE,DOCKER_CELERY_BEAT_IMAGE,BACKEND_CONTAINER_NAME,CELERY_WORKER_CONTAINER_NAME,CELERY_BEAT_CONTAINER_NAME
           script: |
             set -e
 
