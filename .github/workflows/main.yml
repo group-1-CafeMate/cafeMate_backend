@@ -158,6 +158,10 @@ jobs:
             docker pull ${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}
             docker pull ${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}
 
+            docker stop ${BACKEND_CONTAINER_NAME} || true
+            docker stop ${CELERY_WORKER_CONTAINER_NAME} || true
+            docker stop ${CELERY_BEAT_CONTAINER_NAME} || true
+
             # Stop and remove any containers using port 8000
             docker ps -q --filter publish=8000 | xargs -r docker rm -f
             
