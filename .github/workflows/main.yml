@@ -67,7 +67,7 @@ jobs:
         env:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         run: |
-          docker build -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG -f backend/Dockerfile .
+          docker build -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG -f backend/Dockerfile ./backend
           docker push $DOCKER_BACKEND_IMAGE:$IMAGE_TAG
 
   build-push-celery-worker:
@@ -90,7 +90,7 @@ jobs:
         env:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         run: |
-          docker build -t ${DOCKER_CELERY_WORKER_IMAGE}:$IMAGE_TAG -f backend/Dockerfile.celery_worker .
+          docker build -t ${DOCKER_CELERY_WORKER_IMAGE}:$IMAGE_TAG -f backend/Dockerfile.celery_worker ./backend
           docker push $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG
 
   build-push-celery-beat:
@@ -113,7 +113,7 @@ jobs:
         env:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         run: |
-          docker build -t $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG -f backend/Dockerfile.celery_beat .
+          docker build -t $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG -f backend/Dockerfile.celery_beat ./backend
           docker push $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG
 
   deploy-to-ec2:
