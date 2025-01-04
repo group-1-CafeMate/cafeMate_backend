@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ychaocode/django-server:latest # 設定推送到 Docker Hub 的映像名稱
+    container_name: django-server
+    ports:
+      - "8000:8000"
+    networks:
+      - app_network
+    environment:
+      - PYTHONPATH=/app
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.celery_worker
+    image: ychaocode/celery-worker:latest  # 設定推送到 Docker Hub 的映像名稱
+    container_name: celery-worker
+    networks:
+      - app_network
+    environment:
+      - PYTHONPATH=/app
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.celery_beat
+    image: ychaocode/celery-beat:latest  # 設定推送到 Docker Hub 的映像名稱
+    container_name: celery-beat
+    networks:
+      - app_network
+    environment:
+      - PYTHONPATH=/app
+
+networks:
+  app_network:
+    driver: bridge
