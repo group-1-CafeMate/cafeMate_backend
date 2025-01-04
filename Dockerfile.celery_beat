@@ -8,15 +8,15 @@ WORKDIR /app
 RUN mkdir -p /app/logs
 
 # 複製 requirements.txt 並安裝依賴
-COPY requirements.txt /app/requirements.txt
+COPY ./backend/requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # 複製整個後端目錄到容器
-COPY . /app
+COPY ./backend /app
 
 # 設置環境變量
 ENV PYTHONPATH=/app
 
-# 執行 Celery Worker
-CMD ["celery", "-A", "mail", "worker", "--loglevel=info"]
+# 執行 Celery Beat
+CMD ["celery", "-A", "mail", "beat", "--loglevel=info"]
