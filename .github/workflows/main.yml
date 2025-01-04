@@ -171,9 +171,9 @@ jobs:
             docker ps -q --filter name=${CELERY_BEAT_CONTAINER_NAME} | xargs -r docker rm -f
 
             # Start new containers
-            docker run -d --name ${BACKEND_CONTAINER_NAME} -p 8000:8000 ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
-            docker run -d --name ${CELERY_WORKER_CONTAINER_NAME} ${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}
-            docker run -d --name ${CELERY_BEAT_CONTAINER_NAME} ${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}
+            docker run -d --name ${BACKEND_CONTAINER_NAME}:${IMAGE_TAG} -p 8000:8000 ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
+            docker run -d --name ${CELERY_WORKER_CONTAINER_NAME}:${IMAGE_TAG} ${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}
+            docker run -d --name ${CELERY_BEAT_CONTAINER_NAME}:${IMAGE_TAG} ${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}
 
       - name: Notify Discord on Deployment Success
         if: ${{ success() }}
