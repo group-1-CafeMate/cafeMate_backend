@@ -10,11 +10,9 @@ env:
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   test:
@@ -52,8 +50,6 @@ jobs:
   build-push-backend:
     runs-on: ubuntu-latest
     needs: test
-    outputs:
-      image_tag: ${{ steps.build-backend.outputs.image_tag }}  # 定義輸出
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -68,7 +64,6 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD_YC }}
 
       - name: Build and Push Backend Docker image
-        id: build-backend
         env:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         run: |
@@ -78,8 +73,6 @@ jobs:
   build-push-celery-worker:
     runs-on: ubuntu-latest
     needs: test
-    outputs:
-      image_tag: ${{ steps.build-celery-worker.outputs.image_tag }}  # 定義輸出
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -94,18 +87,15 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD_YC }}
 
       - name: Build and Push Celery Worker Docker image
-        id: build-celery-worker
         env:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         run: |
-          docker build -t $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG -f backend/Dockerfile.celery_worker .
+          docker build -t ${DOCKER_CELERY_WORKER_IMAGE}:$IMAGE_TAG -f backend/Dockerfile.celery_worker .
           docker push $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG
 
   build-push-celery-beat:
     runs-on: ubuntu-latest
     needs: test
-    outputs:
-      image_tag: ${{ steps.build-celery-beat.outputs.image_tag }}  # 定義輸出
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -120,7 +110,6 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD_YC }}
 
       - name: Build and Push Celery Beat Docker image
-        id: build-celery-beat
         env:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         run: |
@@ -135,7 +124,8 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Deploy to EC2
-        id: deploy_ec2
+        env: 
+          IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         uses: appleboy/ssh-action@v0.1.8
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -146,19 +136,19 @@ jobs:
             set -e
 
             # Pull latest images using the IMAGE_TAGs from previous jobs
-            docker pull $DOCKER_BACKEND_IMAGE:${{ needs.build-push-backend.outputs.image_tag }}
-            docker pull $DOCKER_CELERY_WORKER_IMAGE:${{ needs.build-push-celery-worker.outputs.image_tag }}
-            docker pull $DOCKER_CELERY_BEAT_IMAGE:${{ needs.build-push-celery-beat.outputs.image_tag }}
+            docker pull ${{ env.DOCKER_BACKEND_IMAGE }}:$IMAGE_TAG
+            docker pull ${{ env.DOCKER_CELERY_WORKER_IMAGE }}:$IMAGE_TAG
+            docker pull ${{ env.DOCKER_CELERY_BEAT_IMAGE }}:$IMAGE_TAG
 
             # Remove old containers
-            docker rm -f $BACKEND_CONTAINER_NAME || true
-            docker rm -f $CELERY_WORKER_CONTAINER_NAME || true
-            docker rm -f $CELERY_BEAT_CONTAINER_NAME || true
+            docker rm -f ${{ env.BACKEND_CONTAINER_NAME }} || true
+            docker rm -f ${{ env.CELERY_WORKER_CONTAINER_NAME }} || true
+            docker rm -f ${{ env.CELERY_BEAT_CONTAINER_NAME }} || true
 
             # Start new containers
-            docker run -d --name $BACKEND_CONTAINER_NAME -p 8000:8000 $DOCKER_BACKEND_IMAGE:${{ needs.build-push-backend.outputs.image_tag }}
-            docker run -d --name $CELERY_WORKER_CONTAINER_NAME $DOCKER_CELERY_WORKER_IMAGE:${{ needs.build-push-celery-worker.outputs.image_tag }}
-            docker run -d --name $CELERY_BEAT_CONTAINER_NAME $DOCKER_CELERY_BEAT_IMAGE:${{ needs.build-push-celery-beat.outputs.image_tag }}
+            docker run -d --name ${{ env.BACKEND_CONTAINER_NAME }} -p 8000:8000 ${{ env.DOCKER_BACKEND_IMAGE }}:$IMAGE_TAG
+            docker run -d --name ${{ env.CELERY_WORKER_CONTAINER_NAME }} ${{ env.DOCKER_CELERY_WORKER_IMAGE }}:$IMAGE_TAG
+            docker run -d --name ${{ env.CELERY_BEAT_CONTAINER_NAME }} ${{ env.DOCKER_CELERY_BEAT_IMAGE }}:$IMAGE_TAG
 
       - name: Notify Discord on Deployment Success
         if: ${{ success() }}
