@@ -156,6 +156,8 @@ AUTH_PASSWORD_VALIDATORS = [
 AWS_REGION = "ap-northeast-1"  # 使用的 AWS 區域
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")  # IAM USER's ACCESS_KEY
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")  # USER's SECRET_ACCESS_KEY
+if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
+    raise ValueError("AWS credentials not properly configured")
 AWS_SQS_VERIFICATION_QUEUE_URL = "https://sqs.ap-northeast-1.amazonaws.com/481665090171/EmailSystemSqsStack-EmailVerificationQueue00C720A8-S96W6o7HLuQi"
 AWS_SQS_NEW_PASSWORD_QUEUE_URL = "https://sqs.ap-northeast-1.amazonaws.com/481665090171/EmailSystemSqsStack-ForgotPasswordQueue5CF9634F-EbHptG23l9yG"
 

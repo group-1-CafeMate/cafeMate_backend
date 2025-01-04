@@ -172,7 +172,10 @@ jobs:
 
             # Start new containers
             docker run -d -p 8000:8000 ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
-            docker run -d ${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}
+            docker run -d \
+                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+                ${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}
             docker run -d ${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}
 
       - name: Notify Discord on Deployment Success
