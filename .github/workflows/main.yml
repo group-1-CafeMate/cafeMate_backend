@@ -30,11 +30,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r backend/requirements.txt
     # 4. 安裝 Docker 和 Docker Compose
-    - name: Install Docker and Docker Compose
-      run: |
-            sudo apt-get update
-            sudo apt-get install -y docker.io
-            sudo apt-get install -y docker-compose
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
     # 5. 運行測試
     - name: Run Tests
