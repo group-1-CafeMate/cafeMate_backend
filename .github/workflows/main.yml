@@ -21,6 +21,7 @@ jobs:
       formatted_password: ${{ steps.format_password.outputs.password }}
     steps:
       - name: Format EMAIL_HOST_PASSWORD
+        shell: bash
         id: format_password
         run: |
           formatted_password=$(echo "${{ secrets.EMAIL_HOST_PASSWORD }}" | sed 's/.\{4\}/& /g' | sed 's/ $//')
