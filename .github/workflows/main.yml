@@ -67,7 +67,19 @@ jobs:
         env:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         run: |
-          docker build -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG -f Dockerfile .
+          docker build \
+            --build-arg MYSQL_NAME=${{ secrets.MYSQL_NAME }} \
+            --build-arg MYSQL_USERNAME=${{ secrets.MYSQL_USER }} \
+            --build-arg MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+            --build-arg MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+            --build-arg SECRET_KEY=${{ secrets.SECRET_KEY }} \
+            --build-arg DEBUG='False' \
+            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            --build-arg EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }} \
+            --build-arg EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }} \
+            --build-arg GSERVICE_SITE_URL=https://cafe.urcafemate.me \
+          -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG -f Dockerfile .
           docker push $DOCKER_BACKEND_IMAGE:$IMAGE_TAG
 
   build-push-celery-worker:
@@ -90,7 +102,10 @@ jobs:
         env:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         run: |
-          docker build -t ${DOCKER_CELERY_WORKER_IMAGE}:$IMAGE_TAG -f Dockerfile.celery_worker .
+          docker build \
+            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+          -t ${DOCKER_CELERY_WORKER_IMAGE}:$IMAGE_TAG -f Dockerfile.celery_worker .
           docker push $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG
 
   build-push-celery-beat:
@@ -113,7 +128,10 @@ jobs:
         env:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
         run: |
-          docker build -t $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG -f Dockerfile.celery_beat .
+          docker build \
+            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+          -t $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG -f Dockerfile.celery_beat .
           docker push $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG
 
   deploy-to-ec2:
@@ -171,12 +189,29 @@ jobs:
             docker ps -q --filter name=${CELERY_BEAT_CONTAINER_NAME} | xargs -r docker rm -f
 
             # Start new containers
-            docker run -d -p 8000:8000 ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
+            docker run -d \
+                -e MYSQL_NAME=${MYSQL_NAME} \
+                -e MYSQL_USER=${MYSQL_USER} \
+                -e MYSQL_PASSWORD=${MYSQL_PASSWORD} \
+                -e MYSQL_HOST=${MYSQL_HOST} \
+                -e SECRET_KEY=${SECRET_KEY} \
+                -e DEBUG=${DEBUG} \
+                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+                -e EMAIL_HOST_USER=${EMAIL_HOST_USER} \
+                -e EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} \
+                -e GSERVICE_SITE_URL=${GSERVICE_SITE_URL} \
+                --name ${BACKEND_CONTAINER_NAME} \
+                -p 8000:8000 ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
+            -p 8000:8000 ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
             docker run -d \
                 -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
                 -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
                 ${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}
-            docker run -d ${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}
+            docker run -d \
+                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            ${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}
 
       - name: Notify Discord on Deployment Success
         if: ${{ success() }}
