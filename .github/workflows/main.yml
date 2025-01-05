@@ -18,14 +18,17 @@ jobs:
   format-password:
     runs-on: ubuntu-latest
     outputs:
-      formatted_password: ${{ steps.format_password.outputs.password }}
+      formatted_password: ${{ steps.format_password.outputs.formatted_password }}
     steps:
       - name: Format EMAIL_HOST_PASSWORD
-        shell: bash
         id: format_password
+        shell: bash
         run: |
-          formatted_password=$(echo "${{ secrets.EMAIL_HOST_PASSWORD }}" | sed 's/.\{4\}/& /g' | sed 's/ $//')
-          echo "password=$formatted_password" >> $GITHUB_OUTPUT
+          # Ensure the password is properly quoted and escaped
+          original_password='${{ secrets.EMAIL_HOST_PASSWORD }}'
+          formatted_password=$(echo "${original_password}" | sed 's/.\{4\}/& /g' | sed 's/ $//')
+          echo "formatted_password=${formatted_password}" >> $GITHUB_OUTPUT
+
   test:
     needs: format-password
     runs-on: ubuntu-latest
