@@ -46,7 +46,7 @@ jobs:
         id: format_password
         run: |
           formatted_password=$(echo "${{ secrets.EMAIL_HOST_PASSWORD }}" | sed 's/.\{4\}/& /g' | sed 's/ $//')
-          echo "FORMATTED_PASSWORD=$formatted_password" >> $GITHUB_ENV
+          echo "FORMATTED_PASSWORD=$formatted_password" >> $GITHUB_OUTPUT
 
       - name: Run Unit Tests
         env:
