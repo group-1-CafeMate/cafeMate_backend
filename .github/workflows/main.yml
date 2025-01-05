@@ -42,7 +42,7 @@ jobs:
           AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           EMAIL_HOST_USER: cafemategroup1@gmail.com
-          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EAIL_HOST_PASSWORD }}
           GSERVICE_SITE_URL: http://localhost:8000
         run: |
           python backend/manage.py test
@@ -68,7 +68,6 @@ jobs:
           IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
           DEBUG: 'False'
           EMAIL_HOST_USER: cafemategroup1@gmail.com
-          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
         run: |
           docker build \
             --build-arg MYSQL_NAME=${{ secrets.MYSQL_NAME }} \
@@ -80,7 +79,7 @@ jobs:
             --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
             --build-arg EMAIL_HOST_USER=${EMAIL_HOST_USER} \
-            --build-arg EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}" \
+            --build-arg EMAIL_HOST_PASSWORD='${{secrets.EAIL_HOST_PASSWORD}}' \
             --build-arg GSERVICE_SITE_URL=https://cafe.urcafemate.me \
             -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG -f Dockerfile .
           docker push $DOCKER_BACKEND_IMAGE:$IMAGE_TAG
@@ -167,7 +166,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.8
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           envs: IMAGE_TAG,DOCKER_BACKEND_IMAGE,DOCKER_CELERY_WORKER_IMAGE,DOCKER_CELERY_BEAT_IMAGE,BACKEND_CONTAINER_NAME,CELERY_WORKER_CONTAINER_NAME,CELERY_BEAT_CONTAINER_NAME, MYSQL_NAME, MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, SECRET_KEY, DEBUG, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, GSERVICE_SITE_URL
@@ -202,7 +201,7 @@ jobs:
                 -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
                 -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
                 -e EMAIL_HOST_USER=${EMAIL_HOST_USER} \
-                -e EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD} \
+                -e EMAIL_HOST_PASSWORD='${EMAIL_HOST_PASSWORD}' \
                 -e GSERVICE_SITE_URL=${GSERVICE_SITE_URL} \
                 -p 8000:8000 \
                 ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
