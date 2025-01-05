@@ -79,7 +79,7 @@ jobs:
             --build-arg EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }} \
             --build-arg EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }} \
             --build-arg GSERVICE_SITE_URL=https://cafe.urcafemate.me \
-          -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG -f Dockerfile .
+            -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG -f Dockerfile .
           docker push $DOCKER_BACKEND_IMAGE:$IMAGE_TAG
 
   build-push-celery-worker:
@@ -105,7 +105,7 @@ jobs:
           docker build \
             --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-          -t ${DOCKER_CELERY_WORKER_IMAGE}:$IMAGE_TAG -f Dockerfile.celery_worker .
+            -t ${DOCKER_CELERY_WORKER_IMAGE}:$IMAGE_TAG -f Dockerfile.celery_worker .
           docker push $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG
 
   build-push-celery-beat:
@@ -131,7 +131,7 @@ jobs:
           docker build \
             --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-          -t $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG -f Dockerfile.celery_beat .
+            -t $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG -f Dockerfile.celery_beat .
           docker push $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG
 
   deploy-to-ec2:
