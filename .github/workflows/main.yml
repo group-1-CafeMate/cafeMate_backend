@@ -27,7 +27,7 @@ jobs:
           # Format password with spaces every 4 characters without escaping
           password='${{ secrets.EMAIL_HOST_PASSWORD }}'
           formatted_password=$(echo "$password" | fold -w4 | paste -sd ' ' -)
-          echo "formatted_password=${formatted_password}" >> $GITHUB_OUTPUT
+          echo "formatted_password='${formatted_password}'" >> $GITHUB_OUTPUT
 
   test:
     needs: format-password
