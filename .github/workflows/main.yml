@@ -42,7 +42,7 @@ jobs:
           AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           EMAIL_HOST_USER: cafemategroup1@gmail.com
-          EMAIL_HOST_PASSWORD: ${{ secrets.EAIL_HOST_PASSWORD }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
           GSERVICE_SITE_URL: http://localhost:8000
         run: |
           python backend/manage.py test
@@ -79,7 +79,7 @@ jobs:
             --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
             --build-arg EMAIL_HOST_USER=${EMAIL_HOST_USER} \
-            --build-arg EMAIL_HOST_PASSWORD='${{secrets.EAIL_HOST_PASSWORD}}' \
+            --build-arg EMAIL_HOST_PASSWORD='${{secrets.EMAIL_HOST_PASSWORD}}' \
             --build-arg GSERVICE_SITE_URL=https://cafe.urcafemate.me \
             -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG -f Dockerfile .
           docker push $DOCKER_BACKEND_IMAGE:$IMAGE_TAG
