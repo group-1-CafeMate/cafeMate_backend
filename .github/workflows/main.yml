@@ -24,13 +24,9 @@ jobs:
         id: format_password
         shell: bash
         run: |
-          # Get original password and add space every 4 characters
-          original_password='${{ secrets.EMAIL_HOST_PASSWORD }}'
-          formatted_password=$(echo "$original_password" | sed 's/.\{4\}/& /g' | sed 's/ $//')
-          # Remove any double spaces that might have been created
-          formatted_password=$(echo "$formatted_password" | tr -s ' ')
-          # Properly escape the formatted password
-          formatted_password=$(printf '%q' "$formatted_password")
+          # Format password with spaces every 4 characters without escaping
+          password='${{ secrets.EMAIL_HOST_PASSWORD }}'
+          formatted_password=$(echo "$password" | fold -w4 | paste -sd ' ' -)
           echo "formatted_password=${formatted_password}" >> $GITHUB_OUTPUT
 
   test:
