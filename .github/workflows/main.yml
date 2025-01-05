@@ -71,7 +71,7 @@ jobs:
         run: |
           docker build \
             --build-arg MYSQL_NAME=${{ secrets.MYSQL_NAME }} \
-            --build-arg MYSQL_USERNAME=${{ secrets.MYSQL_USER }} \
+            --build-arg MYSQL_USER=${{ secrets.MYSQL_USER }} \
             --build-arg MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
             --build-arg MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
             --build-arg SECRET_KEY=${{ secrets.SECRET_KEY }} \
