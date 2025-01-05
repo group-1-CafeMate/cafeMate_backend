@@ -62,17 +62,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME_YC }}
           password: ${{ secrets.DOCKER_PASSWORD_YC }}
-      - name: Echo Environment Variables Before Docker Build
-        run: |
-            echo "MYSQL_NAME=${{ secrets.MYSQL_NAME }}"
-            echo "MYSQL_USERNAME=${{ secrets.MYSQL_USER }}"
-            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}"
-            echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}"
-            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}"
-            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}"
-            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-            echo "EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}"
-            echo "GSERVICE_SITE_URL=https://cafe.urcafemate.me"
 
       - name: Build and Push Backend Docker image
         env:
