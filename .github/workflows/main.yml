@@ -80,24 +80,24 @@ jobs:
 
       - name: Build and Push Backend Docker image
         env:
-          IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
-          DEBUG: 'False'
-          EMAIL_HOST_USER: cafemategroup1@gmail.com
+            IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
+            DEBUG: 'False'
+            EMAIL_HOST_USER: cafemategroup1@gmail.com
         run: |
-          docker build \
-            --build-arg MYSQL_NAME=${{ secrets.MYSQL_NAME }} \
-            --build-arg MYSQL_USER=${{ secrets.MYSQL_USER }} \
-            --build-arg MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-            --build-arg MYSQL_HOST=cafematedatabase.cvwy46qqkh2q.ap-northeast-1.rds.amazonaws.com \
-            --build-arg SECRET_KEY=${{ secrets.SECRET_KEY }} \
-            --build-arg DEBUG=${DEBUG} \
-            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            --build-arg EMAIL_HOST_USER=${EMAIL_HOST_USER} \
-            --build-arg EMAIL_HOST_PASSWORD=${{needs.format-password.outputs.formatted_password}} \
-            --build-arg GSERVICE_SITE_URL=https://cafe.urcafemate.me \
-            -t $DOCKER_BACKEND_IMAGE:$IMAGE_TAG -f Dockerfile .
-          docker push $DOCKER_BACKEND_IMAGE:$IMAGE_TAG
+            docker build \
+              --build-arg MYSQL_NAME="${{ secrets.MYSQL_NAME }}" \
+              --build-arg MYSQL_USER="${{ secrets.MYSQL_USER }}" \
+              --build-arg MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
+              --build-arg MYSQL_HOST="cafematedatabase.cvwy46qqkh2q.ap-northeast-1.rds.amazonaws.com" \
+              --build-arg SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+              --build-arg DEBUG="${DEBUG}" \
+              --build-arg AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+              --build-arg AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              --build-arg EMAIL_HOST_USER="${EMAIL_HOST_USER}" \
+              --build-arg EMAIL_HOST_PASSWORD="${{ needs.format-password.outputs.formatted_password }}" \
+              --build-arg GSERVICE_SITE_URL="https://cafe.urcafemate.me" \
+              -t "${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}" -f Dockerfile .
+            docker push "${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}"
 
   build-push-celery-worker:
     runs-on: ubuntu-latest
