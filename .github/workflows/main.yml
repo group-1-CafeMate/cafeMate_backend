@@ -7,6 +7,7 @@ env:
   BACKEND_CONTAINER_NAME: django-server
   CELERY_WORKER_CONTAINER_NAME: celery-worker
   CELERY_BEAT_CONTAINER_NAME: celery-beat
+  IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
 
 on:
   push:
@@ -24,7 +25,6 @@ jobs:
         id: format_password
         shell: bash
         run: |
-          # Format password with spaces every 4 characters without escaping
           password='${{ secrets.EMAIL_HOST_PASSWORD }}'
           formatted_password=$(echo "$password" | fold -w4 | paste -sd ' ' -)
           echo "formatted_password=${formatted_password}" >> $GITHUB_OUTPUT
@@ -35,6 +35,15 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+
+      # 使用 cache 加速 pip 安裝
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -54,7 +63,7 @@ jobs:
           MYSQL_HOST: 127.0.0.1
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DEBUG: 'True'
-          AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           EMAIL_HOST_USER: cafemategroup1@gmail.com
           EMAIL_HOST_PASSWORD: ${{ needs.format-password.outputs.formatted_password }}
@@ -63,7 +72,7 @@ jobs:
           python backend/manage.py test
 
   build-push-backend:
-    needs: [ test, format-password ]
+    needs: [test, format-password]
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -71,6 +80,15 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      # 添加 Docker layer 緩存
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-backend-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-backend-
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -79,36 +97,49 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD_YC }}
 
       - name: Build and Push Backend Docker image
-        env:
-            IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
-            DEBUG: 'False'
-            EMAIL_HOST_USER: cafemategroup1@gmail.com
-            MYSQL_HOST: ${{ secrets.MYSQL_NAME }}.${{secrets.MYSQL_HOST_MIDDLE}}.ap-northeast-1.rds.amazonaws.com
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_BACKEND_IMAGE }}:${{ env.IMAGE_TAG }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          build-args: |
+            MYSQL_NAME=${{ secrets.MYSQL_NAME }}
+            MYSQL_USER=${{ secrets.MYSQL_USER }}
+            MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+            MYSQL_HOST=${{ secrets.MYSQL_NAME }}.${{ secrets.MYSQL_HOST_MIDDLE }}.ap-northeast-1.rds.amazonaws.com
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            DEBUG=False
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            EMAIL_HOST_USER=cafemategroup1@gmail.com
+            EMAIL_HOST_PASSWORD=${{ needs.format-password.outputs.formatted_password }}
+            GSERVICE_SITE_URL=https://cafe.urcafemate.me
+
+      - name: Move cache
         run: |
-            docker build \
-              --build-arg MYSQL_NAME="${{ secrets.MYSQL_NAME }}" \
-              --build-arg MYSQL_USER="${{ secrets.MYSQL_USER }}" \
-              --build-arg MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}" \
-              --build-arg MYSQL_HOST="${MYSQL_HOST}" \
-              --build-arg SECRET_KEY="${{ secrets.SECRET_KEY }}" \
-              --build-arg DEBUG="${DEBUG}" \
-              --build-arg AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-              --build-arg AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-              --build-arg EMAIL_HOST_USER="${EMAIL_HOST_USER}" \
-              --build-arg EMAIL_HOST_PASSWORD="${{ needs.format-password.outputs.formatted_password }}" \
-              --build-arg GSERVICE_SITE_URL="https://cafe.urcafemate.me" \
-              -t "${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}" -f Dockerfile .
-            docker push "${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}"
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   build-push-celery-worker:
-    runs-on: ubuntu-latest
     needs: test
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-worker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-worker-
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -117,24 +148,40 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD_YC }}
 
       - name: Build and Push Celery Worker Docker image
-        env:
-          IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile.celery_worker
+          push: true
+          tags: ${{ env.DOCKER_CELERY_WORKER_IMAGE }}:${{ env.IMAGE_TAG }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          build-args: |
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Move cache
         run: |
-          docker build \
-            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            -t ${DOCKER_CELERY_WORKER_IMAGE}:$IMAGE_TAG -f Dockerfile.celery_worker .
-          docker push $DOCKER_CELERY_WORKER_IMAGE:$IMAGE_TAG
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   build-push-celery-beat:
-    runs-on: ubuntu-latest
     needs: test
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-beat-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-beat-
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -143,67 +190,72 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD_YC }}
 
       - name: Build and Push Celery Beat Docker image
-        env:
-          IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile.celery_beat
+          push: true
+          tags: ${{ env.DOCKER_CELERY_BEAT_IMAGE }}:${{ env.IMAGE_TAG }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          build-args: |
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Move cache
         run: |
-          docker build \
-            --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            -t $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG -f Dockerfile.celery_beat .
-          docker push $DOCKER_CELERY_BEAT_IMAGE:$IMAGE_TAG
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   deploy-to-ec2:
     runs-on: ubuntu-latest
     needs: [build-push-backend, build-push-celery-worker, build-push-celery-beat, format-password]
     steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Deploy to EC2
-        env: 
-          IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
-          DOCKER_BACKEND_IMAGE: ${{ env.DOCKER_BACKEND_IMAGE }}
-          DOCKER_CELERY_WORKER_IMAGE: ${{ env.DOCKER_CELERY_WORKER_IMAGE }}
-          DOCKER_CELERY_BEAT_IMAGE: ${{ env.DOCKER_CELERY_BEAT_IMAGE }}
-          BACKEND_CONTAINER_NAME: ${{ env.BACKEND_CONTAINER_NAME }}
-          CELERY_WORKER_CONTAINER_NAME: ${{ env.CELERY_WORKER_CONTAINER_NAME }}
-          CELERY_BEAT_CONTAINER_NAME: ${{ env.CELERY_BEAT_CONTAINER_NAME }}
-          MYSQL_NAME: ${{ secrets.MYSQL_NAME }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          MYSQL_HOST: ${{ secrets.MYSQL_NAME }}.${{secrets.MYSQL_HOST_MIDDLE}}.ap-northeast-1.rds.amazonaws.com
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DEBUG: 'False'
-          AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          EMAIL_HOST_USER: cafemategroup1@gmail.com
-          EMAIL_HOST_PASSWORD: ${{ needs.format-password.outputs.formatted_password }}
-          GSERVICE_SITE_URL: https://cafe.urcafemate.me
         uses: appleboy/ssh-action@v0.1.8
+        env:
+          MYSQL_HOST: ${{ secrets.MYSQL_NAME }}.${{secrets.MYSQL_HOST_MIDDLE}}.ap-northeast-1.rds.amazonaws.com
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          envs: IMAGE_TAG,DOCKER_BACKEND_IMAGE,DOCKER_CELERY_WORKER_IMAGE,DOCKER_CELERY_BEAT_IMAGE,BACKEND_CONTAINER_NAME,CELERY_WORKER_CONTAINER_NAME,CELERY_BEAT_CONTAINER_NAME, MYSQL_NAME, MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, SECRET_KEY, DEBUG, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, GSERVICE_SITE_URL
+          envs: IMAGE_TAG,DOCKER_BACKEND_IMAGE,DOCKER_CELERY_WORKER_IMAGE,DOCKER_CELERY_BEAT_IMAGE,BACKEND_CONTAINER_NAME,CELERY_WORKER_CONTAINER_NAME,CELERY_BEAT_CONTAINER_NAME,MYSQL_NAME,MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,SECRET_KEY,DEBUG,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,EMAIL_HOST_USER,EMAIL_HOST_PASSWORD,GSERVICE_SITE_URL
           script: |
             set -e
-
-            # Pull latest images using the IMAGE_TAGs from previous jobs
-            docker pull ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
-            docker pull ${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}
-            docker pull ${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}
-
-            echo "Stopping containers using port 8000..."
-            # Stop and remove any containers using port 8000
-            docker ps -q --filter publish=8000 | xargs -r docker rm -f
             
-            # Stop and remove old containers if they exist (using container names)
-            docker ps -q --filter name=${BACKEND_CONTAINER_NAME} | xargs -r docker rm -f
-            docker ps -q --filter name=${CELERY_WORKER_CONTAINER_NAME} | xargs -r docker rm -f
-            docker ps -q --filter name=${CELERY_BEAT_CONTAINER_NAME} | xargs -r docker rm -f
+            # 並行拉取映像檔
+            {
+              docker pull ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
+              echo "Backend image pulled"
+            } &
+            {
+              docker pull ${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}
+              echo "Worker image pulled"
+            } &
+            {
+              docker pull ${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}
+              echo "Beat image pulled"
+            } &
+            wait
 
-            # Start new containers
+            # 並行停止和移除容器
+            {
+              docker ps -q --filter publish=8000 | xargs -r docker rm -f
+              docker ps -q --filter name=${BACKEND_CONTAINER_NAME} | xargs -r docker rm -f
+              echo "Backend containers stopped"
+            } &
+            {
+              docker ps -q --filter name=${CELERY_WORKER_CONTAINER_NAME} | xargs -r docker rm -f
+              echo "Worker container stopped"
+            } &
+            {
+              docker ps -q --filter name=${CELERY_BEAT_CONTAINER_NAME} | xargs -r docker rm -f
+              echo "Beat container stopped"
+            } &
+            wait
+
+            # Start containers
             docker run -d \
                 --name "${BACKEND_CONTAINER_NAME}" \
                 -e MYSQL_NAME="${MYSQL_NAME}" \
@@ -211,7 +263,7 @@ jobs:
                 -e MYSQL_PASSWORD="${MYSQL_PASSWORD}" \
                 -e MYSQL_HOST="${MYSQL_HOST}" \
                 -e SECRET_KEY="${SECRET_KEY}" \
-                -e DEBUG="${DEBUG}" \
+                -e DEBUG="False" \
                 -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
                 -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
                 -e EMAIL_HOST_USER="${EMAIL_HOST_USER}" \
@@ -239,43 +291,12 @@ jobs:
                 -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
                 "${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}"
 
-      - name: Notify Discord on Deployment Success
-        if: ${{ success() }}
-        uses: appleboy/discord-action@master
-        with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          username: 'CI/CD GitHub Bot'
-          message: |
-            **Deployment Status: Success** 🎉
-            The containers have been updated and are running.
-            Environment: ${{ runner.os }}
-            Triggered Event: ${{ github.event_name }}
-            Branch: ${{ github.ref }}
-            Commit: ${{ github.sha }}
-            Job Name: Deploy to EC2
-
-      - name: Notify Discord on Deployment Failure
-        if: ${{ failure() }}
-        uses: appleboy/discord-action@master
-        with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          username: 'CI/CD GitHub Bot'
-          message: |
-            **Deployment Status: Failed** ❌
-            Please check the deployment logs for details.
-            Environment: ${{ runner.os }}
-            Triggered Event: ${{ github.event_name }}
-            Branch: ${{ github.ref }}
-            Commit: ${{ github.sha }}
-            Job Name: Deploy to EC2
-
   notify-job-status:
     runs-on: ubuntu-latest
     needs: [build-push-backend, build-push-celery-worker, build-push-celery-beat, deploy-to-ec2]
+    if: always()
     steps:
-      - name: Notify Discord of Overall Job Status
+      - name: Notify Discord of Job Status
         uses: appleboy/discord-action@master
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
@@ -287,3 +308,8 @@ jobs:
             Celery Worker Build & Push: ${{ needs.build-push-celery-worker.result }}
             Celery Beat Build & Push: ${{ needs.build-push-celery-beat.result }}
             Deploy to EC2: ${{ needs.deploy-to-ec2.result }}
+            
+            Environment: ${{ runner.os }}
+            Event: ${{ github.event_name }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
