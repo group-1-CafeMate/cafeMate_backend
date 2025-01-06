@@ -226,7 +226,6 @@ jobs:
                 -e MYSQL_USER="${MYSQL_USER}" \
                 -e MYSQL_PASSWORD="${MYSQL_PASSWORD}" \
                 -e MYSQL_HOST="${MYSQL_HOST}" \
-                -e SECRET_KEY="${SECRET_KEY}" \
                 -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
                 -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
                 -e EMAIL_HOST_USER="${EMAIL_HOST_USER}" \
