@@ -83,6 +83,7 @@ jobs:
             IMAGE_TAG: "${{ github.ref_name }}-backend-${{ github.run_id }}"
             DEBUG: 'False'
             EMAIL_HOST_USER: cafemategroup1@gmail.com
+            MYSQL_HOST: "${{ secrets.MYSQL_NAME }}.${{secrets.MYSQL_HOST_MIDDLE}}.ap-northeast-1.rds.amazonaws.com"
         run: |
             docker build \
               --build-arg MYSQL_NAME="${{ secrets.MYSQL_NAME }}" \
@@ -170,7 +171,7 @@ jobs:
           MYSQL_NAME: ${{ secrets.MYSQL_NAME }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+          MYSQL_HOST: "${{ secrets.MYSQL_NAME }}.${{secrets.MYSQL_HOST_MIDDLE}}.ap-northeast-1.rds.amazonaws.com"
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DEBUG: 'False'
           AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -207,29 +208,32 @@ jobs:
 
             # Start new containers
             docker run -d \
-                -e MYSQL_NAME=${MYSQL_NAME} \
-                -e MYSQL_USER=${MYSQL_USER} \
-                -e MYSQL_PASSWORD=${MYSQL_PASSWORD} \
-                -e MYSQL_HOST=${MYSQL_HOST} \
-                -e SECRET_KEY=${SECRET_KEY} \
-                -e DEBUG=${DEBUG} \
-                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-                -e EMAIL_HOST_USER=${EMAIL_HOST_USER} \
-                -e EMAIL_HOST_PASSWORD='${EMAIL_HOST_PASSWORD}' \
-                -e GSERVICE_SITE_URL=${GSERVICE_SITE_URL} \
+                --name "${BACKEND_CONTAINER_NAME}" \
+                -e MYSQL_NAME="${MYSQL_NAME}" \
+                -e MYSQL_USER="${MYSQL_USER}" \
+                -e MYSQL_PASSWORD="${MYSQL_PASSWORD}" \
+                -e MYSQL_HOST="${MYSQL_HOST}" \
+                -e SECRET_KEY="${SECRET_KEY}" \
+                -e DEBUG="${DEBUG}" \
+                -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
+                -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+                -e EMAIL_HOST_USER="${EMAIL_HOST_USER}" \
+                -e EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}" \
+                -e GSERVICE_SITE_URL="${GSERVICE_SITE_URL}" \
                 -p 8000:8000 \
-                ${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}
+                "${DOCKER_BACKEND_IMAGE}:${IMAGE_TAG}"
 
             docker run -d \
-                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-                ${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}
+                --name "${CELERY_WORKER_CONTAINER_NAME}" \
+                -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
+                -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+                "${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}"
 
             docker run -d \
-                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-            ${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}
+                --name "${CELERY_BEAT_CONTAINER_NAME}" \
+                -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
+                -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+                "${DOCKER_CELERY_BEAT_IMAGE}:${IMAGE_TAG}"
 
       - name: Notify Discord on Deployment Success
         if: ${{ success() }}
