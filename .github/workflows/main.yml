@@ -222,8 +222,16 @@ jobs:
 
             docker run -d \
                 --name "${CELERY_WORKER_CONTAINER_NAME}" \
+                -e MYSQL_NAME="${MYSQL_NAME}" \
+                -e MYSQL_USER="${MYSQL_USER}" \
+                -e MYSQL_PASSWORD="${MYSQL_PASSWORD}" \
+                -e MYSQL_HOST="${MYSQL_HOST}" \
+                -e SECRET_KEY="${SECRET_KEY}" \
                 -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
                 -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+                -e EMAIL_HOST_USER="${EMAIL_HOST_USER}" \
+                -e EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}" \
+                -e GSERVICE_SITE_URL="${GSERVICE_SITE_URL}" \
                 "${DOCKER_CELERY_WORKER_IMAGE}:${IMAGE_TAG}"
 
             docker run -d \
